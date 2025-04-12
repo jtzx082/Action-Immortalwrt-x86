@@ -13,7 +13,7 @@
 name: Update Checker
 
 env:
-  REPO_URL: https://github.com/immortalwrt/immortalwrt
+  REPO_URL: https://github.com/immortalwrt/immortalwrt #检查源码地址
   REPO_BRANCH: openwrt-24.10
 
 on:
@@ -62,6 +62,6 @@ jobs:
     - name: Delete workflow runs
       uses: Mattraks/delete-workflow-runs@v2
       with:
-        token: ${{ secrets.ACTION }}
+        token: ${{ secrets.ACTION }} #更新为自建repo权限Token
         retain_days: 0
         keep_minimum_runs: 2
