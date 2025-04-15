@@ -18,6 +18,7 @@
 
 # Modify hostname
 #sed -i 's/OpenWrt/P3TERX-Router/g' package/base-files/files/bin/config_generate
+sed -ri '/^CMAKE_HOST_OPTIONS/r '<(echo -e '\t-DFEATURE_glib=OFF \\') ./feeds/packages/libs/qt6base/Makefile
 
 # 创建目标文件夹
 mkdir -p ./files/etc/config
