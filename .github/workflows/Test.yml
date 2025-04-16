@@ -156,7 +156,7 @@ jobs:
         run: |
           echo "release_tag=${{ env.FILE_DATE1 }}" >> $GITHUB_OUTPUT
           touch release.txt
-          echo "📥 固件下载" >> release.txt
+          echo "📥 固件下载-Test" >> release.txt
           echo "status=success" >> $GITHUB_OUTPUT
 
       - name: Upload firmware to release
