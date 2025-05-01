@@ -1,7 +1,7 @@
 # 注意规则在满足自己需求情况下，尽量做到精简，不要过度复杂，以免影响性能。
 # 机场订阅
 proxy-providers:
-  Airport1:
+  iKuuu:
     url: ""
     type: http
     interval: 86400
@@ -106,6 +106,10 @@ proxy-groups:
   - {name: 🎵 TikTok, <<: *pr}
   - {name: 📲 Telegram, <<: *pr}
   - {name: 🚀 Instagram, <<: *pr}
+  - {name: 🚀 Mega, <<: *pr}
+  - {name: 🍀 Steam, <<: *pr}
+  - {name: 🍀 Steam_CN, <<: *pr}
+  - {name: 🍀 Steam_unlocked, <<: *pr}
   - {name: 🎥 NETFLIX, <<: *pr}
   - {name: ✈️ Speedtest, <<: *pr}
   - {name: 💶 PayPal, <<: *pr}
@@ -126,33 +130,42 @@ proxy-groups:
 # 规则匹配
 # 此规则部分没有做防泄露处理，因为弊严重大于利！
 rules:
+# 1. 特殊域名直连/代理 (最高优先级)
   - DOMAIN-SUFFIX,qichiyu.com,🚀 默认代理
-  - DOMAIN-SUFFIX,steamcommunity.com,🚀 默认代理
   - DOMAIN-SUFFIX,bing.com,🚀 默认代理
-  - DOMAIN-SUFFIX,steampowered.com,🚀 默认代理
-  - RULE-SET,gamecn_domain,🎯 直连
+  - RULE-SET,steam_cn_domain,🍀 Steam_CN
+  - RULE-SET,steam_domain,🍀 Steam
+  - RULE-SET,steamunlocked_domain,🍀 Steam_unlocked
+# 2. 基础规则 (直连/拒绝)
   - RULE-SET,private_domain,直连
   - RULE-SET,adblock_domain,REJECT
+# 3. 按服务分流 (中等优先级)
   - RULE-SET,apple_domain,🍎 Apple
   - RULE-SET,ai,🤖 ChatGPT
   - RULE-SET,github_domain,👨🏿‍💻 GitHub
   - RULE-SET,youtube_domain,📹 YouTube
   - RULE-SET,google_domain,🍀 Google
-  - RULE-SET,onedrive_domain,🐬 OneDrive
   - RULE-SET,microsoft_domain,🪟 Microsoft
+  - RULE-SET,onedrive_domain,🐬 OneDrive
   - RULE-SET,tiktok_domain,🎵 TikTok
-  - RULE-SET,speedtest_domain,✈️ Speedtest
   - RULE-SET,telegram_domain,📲 Telegram
   - RULE-SET,instagram_domain,🚀 Instagram
+  - RULE-SET,mega_domain,🚀 Mega
   - RULE-SET,netflix_domain,🎥 NETFLIX
+  - RULE-SET,speedtest_domain,✈️ Speedtest
   - RULE-SET,paypal_domain,💶 PayPal
+  - RULE-SET,gamecn_domain,🎯 直连
+# 4. 通用代理规则 (较低优先级)
   - RULE-SET,gfw_domain,🚀 默认代理
   - RULE-SET,geolocation-!cn,🚀 默认代理
+# 5. 国内流量直连 (兜底)
   - RULE-SET,cn_domain,🎯 直连
+  - RULE-SET,cn_ip,🎯 直连,no-resolve
+# 6. IP类规则 (需no-resolve)
   - RULE-SET,google_ip,🍀 Google,no-resolve
   - RULE-SET,netflix_ip,🎥 NETFLIX,no-resolve
   - RULE-SET,telegram_ip,📲 Telegram,no-resolve
-  - RULE-SET,cn_ip,🎯 直连
+# 7. 漏网之鱼 
   - MATCH,🐟 漏网之鱼
 
 # 规则集
@@ -180,7 +193,11 @@ rule-providers:
   cn_domain: { <<: *domain, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/cn.mrs"}
   adblock_domain: { <<: *domain, url: "https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/meta/geo/geosite/category-ads-all.mrs"}
   instagram_domain: { <<: *domain, url: "https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/meta/geo/geosite/instagram.mrs"}
-  
+  mega_domain: { <<: *domain, url: "https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/meta/geo/geosite/mega.mrs"}
+  steam_domain: { <<: *domain, url: "https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/meta/geo/geosite/steam.mrs"}
+  steam_cn_domain: { <<: *domain, url: "https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/meta/geo/geosite/steam@cn.mrs"}
+  steamunlocked_domain: { <<: *domain, url: "https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/meta/geo/geosite/steamunlocked.mrs"}
+
   cn_ip: { <<: *ip, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/cn.mrs"}
   google_ip: { <<: *ip, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/google.mrs"}
   telegram_ip: { <<: *ip, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/telegram.mrs"}
