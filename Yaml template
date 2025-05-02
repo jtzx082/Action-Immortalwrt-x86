@@ -107,9 +107,11 @@ proxy-groups:
   - {name: 📲 Telegram, <<: *pr}
   - {name: 🚀 Instagram, <<: *pr}
   - {name: 🚀 Mega, <<: *pr}
-  - {name: 🍀 Steam, <<: *pr}
   - {name: 🍀 Steam_CN, <<: *pr}
   - {name: 🍀 Steam_unlocked, <<: *pr}
+  - {name: 🍀 Steam, <<: *pr}
+  - {name: 🍀 Xbox_CN, <<: *pr}
+  - {name: 🍀 Xbox, <<: *pr}
   - {name: 🎥 NETFLIX, <<: *pr}
   - {name: ✈️ Speedtest, <<: *pr}
   - {name: 💶 PayPal, <<: *pr}
@@ -134,8 +136,11 @@ rules:
   - DOMAIN-SUFFIX,qichiyu.com,🚀 默认代理
   - DOMAIN-SUFFIX,bing.com,🚀 默认代理
   - RULE-SET,steam_cn_domain,🍀 Steam_CN
-  - RULE-SET,steam_domain,🍀 Steam
   - RULE-SET,steamunlocked_domain,🍀 Steam_unlocked
+  - RULE-SET,steam_domain,🍀 Steam
+  - RULE-SET,xbox_cn_domain,🍀 Xbox_CN
+  - RULE-SET,xbox_domain,🍀 Xbox
+  - RULE-SET,gamecn_domain,🎯 直连
 # 2. 基础规则 (直连/拒绝)
   - RULE-SET,private_domain,直连
   - RULE-SET,adblock_domain,REJECT
@@ -154,7 +159,6 @@ rules:
   - RULE-SET,netflix_domain,🎥 NETFLIX
   - RULE-SET,speedtest_domain,✈️ Speedtest
   - RULE-SET,paypal_domain,💶 PayPal
-  - RULE-SET,gamecn_domain,🎯 直连
 # 4. 通用代理规则 (较低优先级)
   - RULE-SET,gfw_domain,🚀 默认代理
   - RULE-SET,geolocation-!cn,🚀 默认代理
@@ -197,6 +201,8 @@ rule-providers:
   steam_domain: { <<: *domain, url: "https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/meta/geo/geosite/steam.mrs"}
   steam_cn_domain: { <<: *domain, url: "https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/meta/geo/geosite/steam@cn.mrs"}
   steamunlocked_domain: { <<: *domain, url: "https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/meta/geo/geosite/steamunlocked.mrs"}
+  xbox_cn_domain: { <<: *domain, url: "https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/meta/geo/geosite/xbox@cn.mrs"}
+  xbox_domain: { <<: *domain, url: "https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/meta/geo/geosite/xbox.mrs"}
 
   cn_ip: { <<: *ip, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/cn.mrs"}
   google_ip: { <<: *ip, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/google.mrs"}
