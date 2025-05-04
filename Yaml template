@@ -2,7 +2,7 @@
 # 机场订阅
 proxy-providers:
   iKuuu:
-    url: "https://8bh6u.no-mad-world.club/link/EkEG93KcyCzHlJ2v?clash=3&extend=1"
+    url: ""
     type: http
     interval: 86400
     health-check:
