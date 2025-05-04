@@ -2,7 +2,7 @@
 # 机场订阅
 proxy-providers:
   iKuuu:
-    url: ""
+    url: "https://8bh6u.no-mad-world.club/link/EkEG93KcyCzHlJ2v?clash=3&extend=1"
     type: http
     interval: 86400
     health-check:
@@ -82,7 +82,9 @@ dns:
   fake-ip-filter:
     - +.lan
     - +.local
+    - +.time
     - private_domain
+    - apple_domain
     - cn_domain
   default-nameserver:
     - 223.5.5.5
@@ -112,6 +114,7 @@ proxy-groups:
   - {name: 🍀 Steam, <<: *pr}
   - {name: 🍀 Xbox_CN, <<: *pr}
   - {name: 🍀 Xbox, <<: *pr}
+  - {name: 🍀 Bilibili港澳台, <<: *pr}
   - {name: 🎥 NETFLIX, <<: *pr}
   - {name: ✈️ Speedtest, <<: *pr}
   - {name: 💶 PayPal, <<: *pr}
@@ -135,12 +138,14 @@ rules:
 # 1. 特殊域名直连/代理 (最高优先级)
   - DOMAIN-SUFFIX,qichiyu.com,🚀 默认代理
   - DOMAIN-SUFFIX,bing.com,🚀 默认代理
+  - DOMAIN-SUFFIX,copilot.microsoft.com,🚀 默认代理
   - RULE-SET,steam_cn_domain,🍀 Steam_CN
   - RULE-SET,steamunlocked_domain,🍀 Steam_unlocked
   - RULE-SET,steam_domain,🍀 Steam
   - RULE-SET,xbox_cn_domain,🍀 Xbox_CN
   - RULE-SET,xbox_domain,🍀 Xbox
   - RULE-SET,gamecn_domain,🎯 直连
+  - RULE-SET,bilibili_!cn_domain,🍀 Bilibili港澳台
 # 2. 基础规则 (直连/拒绝)
   - RULE-SET,private_domain,直连
   - RULE-SET,adblock_domain,REJECT
@@ -203,6 +208,7 @@ rule-providers:
   steamunlocked_domain: { <<: *domain, url: "https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/meta/geo/geosite/steamunlocked.mrs"}
   xbox_cn_domain: { <<: *domain, url: "https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/meta/geo/geosite/xbox@cn.mrs"}
   xbox_domain: { <<: *domain, url: "https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/meta/geo/geosite/xbox.mrs"}
+  bilibili_!cn_domain: { <<: *domain, url: "https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/meta/geo/geosite/bilibili@!cn.mrs"}
 
   cn_ip: { <<: *ip, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/cn.mrs"}
   google_ip: { <<: *ip, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/google.mrs"}
