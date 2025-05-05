@@ -143,6 +143,7 @@ rules:
   - DOMAIN-SUFFIX,qichiyu.com,🚀 默认代理
   - DOMAIN-SUFFIX,bing.com,🚀 默认代理
   - DOMAIN-SUFFIX,copilot.microsoft.com,🚀 默认代理
+  - RULE-SET,bilibili_game_domain,🎮 Bilibili Game
   - RULE-SET,bilibili_domain,📺 Bilibili
   - RULE-SET,ehentai_domain,🔞 E-Hentai
   - RULE-SET,steam_cn_domain,🎮 Steam_CN
@@ -150,7 +151,6 @@ rules:
   - RULE-SET,steam_domain,🎮 Steam
   - RULE-SET,xbox_cn_domain,🎮 Xbox_CN
   - RULE-SET,xbox_domain,🎮 Xbox
-  - RULE-SET,bilibili_game_domain,🎮 Bilibili Game
   - RULE-SET,gamecn_domain,🎯 直连
   
   
