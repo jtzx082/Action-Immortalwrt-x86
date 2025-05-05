@@ -107,8 +107,8 @@ proxy-groups:
   - {name: 🪟 Microsoft, <<: *pr}
   - {name: 🎵 TikTok, <<: *pr}
   - {name: 📲 Telegram, <<: *pr}
-  - {name: 🚀 Instagram, <<: *pr}
-  - {name: 🚀 Mega, <<: *pr}
+  - {name: ✨ Instagram, <<: *pr}
+  - {name: Ⓜ️ Mega, <<: *pr}
   - {name: 🎮 Steam_CN, <<: *pr}
   - {name: 🎮 Steam_unlocked, <<: *pr}
   - {name: 🎮 Steam, <<: *pr}
@@ -165,8 +165,8 @@ rules:
   - RULE-SET,onedrive_domain,🐬 OneDrive
   - RULE-SET,tiktok_domain,🎵 TikTok
   - RULE-SET,telegram_domain,📲 Telegram
-  - RULE-SET,instagram_domain,🚀 Instagram
-  - RULE-SET,mega_domain,🚀 Mega
+  - RULE-SET,instagram_domain,✨ Instagram
+  - RULE-SET,mega_domain,Ⓜ️ Mega
   - RULE-SET,netflix_domain,🎥 NETFLIX
   - RULE-SET,speedtest_domain,✈️ Speedtest
   - RULE-SET,paypal_domain,💶 PayPal
