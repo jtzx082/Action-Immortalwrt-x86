@@ -74,7 +74,7 @@ tun:
 dns:
   enable: true
   listen: 0.0.0.0:1053
-  ipv6: false
+  ipv6: personally
   respect-rules: true
   enhanced-mode: fake-ip
   fake-ip-range: 28.0.0.1/8
@@ -100,7 +100,7 @@ pr: &pr {type: select, proxies: [🚀 默认代理, 🔯 香港故转, 🔯 日�
 proxy-groups:
   - {name: 🚀 默认代理, type: select, proxies: [🔯 香港故转, 🔯 日本故转, ♻️ 香港自动, ♻️ 日本自动, ♻️ 美国自动, ♻️ 自动选择, 🇭🇰 香港节点, 🇯🇵 日本节点, 🇺🇲 美国节点, 🌐 全部节点, 直连]}
   - {name: 📹 YouTube, <<: *pr}
-  - {name: 🍀 Google, <<: *pr}
+  - {name: 🔍 Google, <<: *pr}
   - {name: 🤖 ChatGPT, <<: *pr}
   - {name: 👨🏿‍💻 GitHub, <<: *pr}
   - {name: 🐬 OneDrive, <<: *pr}
@@ -109,14 +109,14 @@ proxy-groups:
   - {name: 📲 Telegram, <<: *pr}
   - {name: 🚀 Instagram, <<: *pr}
   - {name: 🚀 Mega, <<: *pr}
-  - {name: 🍀 Steam_CN, <<: *pr}
-  - {name: 🍀 Steam_unlocked, <<: *pr}
-  - {name: 🍀 Steam, <<: *pr}
-  - {name: 🍀 Xbox_CN, <<: *pr}
-  - {name: 🍀 Xbox, <<: *pr}
-  - {name: 🍀 Bilibili Game, <<: *pr}
-  - {name: 🍀 Bilibili, <<: *pr}
-  - {name: 🍀 E-Hentai, <<: *pr}
+  - {name: 🎮 Steam_CN, <<: *pr}
+  - {name: 🎮 Steam_unlocked, <<: *pr}
+  - {name: 🎮 Steam, <<: *pr}
+  - {name: 🎮 Xbox_CN, <<: *pr}
+  - {name: 🎮 Xbox, <<: *pr}
+  - {name: 🎮 Bilibili Game, <<: *pr}
+  - {name: 📺 Bilibili, <<: *pr}
+  - {name: 🔞 E-Hentai, <<: *pr}
   - {name: 🎥 NETFLIX, <<: *pr}
   - {name: ✈️ Speedtest, <<: *pr}
   - {name: 💶 PayPal, <<: *pr}
@@ -141,15 +141,17 @@ rules:
   - DOMAIN-SUFFIX,qichiyu.com,🚀 默认代理
   - DOMAIN-SUFFIX,bing.com,🚀 默认代理
   - DOMAIN-SUFFIX,copilot.microsoft.com,🚀 默认代理
-  - RULE-SET,bilibili_domain,🍀 Bilibili
-  - RULE-SET,ehentai_domain,🍀 E-Hentai
-  - RULE-SET,steam_cn_domain,🍀 Steam_CN
-  - RULE-SET,steamunlocked_domain,🍀 Steam_unlocked
-  - RULE-SET,steam_domain,🍀 Steam
-  - RULE-SET,xbox_cn_domain,🍀 Xbox_CN
-  - RULE-SET,xbox_domain,🍀 Xbox
-  - RULE-SET,bilibili_game_domain,🍀 Bilibili Game
+  - RULE-SET,bilibili_domain,📺 Bilibili
+  - RULE-SET,ehentai_domain,🔞 E-Hentai
+  - RULE-SET,steam_cn_domain,🎮 Steam_CN
+  - RULE-SET,steamunlocked_domain,🎮 Steam_unlocked
+  - RULE-SET,steam_domain,🎮 Steam
+  - RULE-SET,xbox_cn_domain,🎮 Xbox_CN
+  - RULE-SET,xbox_domain,🎮 Xbox
+  - RULE-SET,bilibili_game_domain,🎮 Bilibili Game
   - RULE-SET,gamecn_domain,🎯 直连
+  
+  
 # 2. 基础规则 (直连/拒绝)
   - RULE-SET,private_domain,直连
   - RULE-SET,adblock_domain,REJECT
@@ -158,7 +160,7 @@ rules:
   - RULE-SET,ai,🤖 ChatGPT
   - RULE-SET,github_domain,👨🏿‍💻 GitHub
   - RULE-SET,youtube_domain,📹 YouTube
-  - RULE-SET,google_domain,🍀 Google
+  - RULE-SET,google_domain,🔍 Google
   - RULE-SET,microsoft_domain,🪟 Microsoft
   - RULE-SET,onedrive_domain,🐬 OneDrive
   - RULE-SET,tiktok_domain,🎵 TikTok
@@ -175,7 +177,7 @@ rules:
   - RULE-SET,cn_domain,🎯 直连
   - RULE-SET,cn_ip,🎯 直连,no-resolve
 # 6. IP类规则 (需no-resolve)
-  - RULE-SET,google_ip,🍀 Google,no-resolve
+  - RULE-SET,google_ip,🔍 Google,no-resolve
   - RULE-SET,netflix_ip,🎥 NETFLIX,no-resolve
   - RULE-SET,telegram_ip,📲 Telegram,no-resolve
 # 7. 漏网之鱼 
