@@ -88,10 +88,13 @@ dns:
     - cn_domain
   default-nameserver:
     - 223.5.5.5
+    - 1.1.1.1
   proxy-server-nameserver:
-    - 223.5.5.5
+    - https://doh.pub/dns-query
+    - https://dns.alidns.com/dns-query
   nameserver:
     - https://dns.adguard-dns.com/dns-query
+    - https://dns.alidns.com/dns-query
  
 # 出站策略
 # 注意锚点必须放在引用的上方，可以集中把锚点全部放yaml的顶部。
