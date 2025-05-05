@@ -114,7 +114,9 @@ proxy-groups:
   - {name: 🍀 Steam, <<: *pr}
   - {name: 🍀 Xbox_CN, <<: *pr}
   - {name: 🍀 Xbox, <<: *pr}
-  - {name: 🍀 Bilibili港澳台, <<: *pr}
+  - {name: 🍀 Bilibili非国内, <<: *pr}
+  - {name: 🍀 Bilibili Game, <<: *pr}
+  - {name: 🍀 Bilibili, <<: *pr}
   - {name: 🎥 NETFLIX, <<: *pr}
   - {name: ✈️ Speedtest, <<: *pr}
   - {name: 💶 PayPal, <<: *pr}
@@ -145,7 +147,9 @@ rules:
   - RULE-SET,xbox_cn_domain,🍀 Xbox_CN
   - RULE-SET,xbox_domain,🍀 Xbox
   - RULE-SET,gamecn_domain,🎯 直连
-  - RULE-SET,bilibili_!cn_domain,🍀 Bilibili港澳台
+  - RULE-SET,bilibili_!cn_domain,🍀 Bilibili非国内
+  - RULE-SET,bilibili_game_domain,🍀 Bilibili Game
+  - RULE-SET,bilibili_domain,🍀 Bilibili
 # 2. 基础规则 (直连/拒绝)
   - RULE-SET,private_domain,直连
   - RULE-SET,adblock_domain,REJECT
@@ -209,6 +213,8 @@ rule-providers:
   xbox_cn_domain: { <<: *domain, url: "https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/meta/geo/geosite/xbox@cn.mrs"}
   xbox_domain: { <<: *domain, url: "https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/meta/geo/geosite/xbox.mrs"}
   bilibili_!cn_domain: { <<: *domain, url: "https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/meta/geo/geosite/bilibili@!cn.mrs"}
+  bilibili_game_domain: { <<: *domain, url: "https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/meta/geo/geosite/bilibili-game.mrs"}
+  bilibili_domain: { <<: *domain, url: "https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/meta/geo/geosite/bilibili.mrs"}
 
   cn_ip: { <<: *ip, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/cn.mrs"}
   google_ip: { <<: *ip, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/google.mrs"}
