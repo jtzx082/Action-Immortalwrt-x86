@@ -21,8 +21,13 @@ A template for building OpenWrt with GitHub Actions
 
 - It may take a long time to create a `.config` file and build the OpenWrt firmware. Thus, before create repository to build your own firmware, you may check out if others have already built it which meet your needs by simply [search `Actions-Openwrt` in GitHub](https://github.com/search?q=Actions-openwrt).
 - Add some meta info of your built firmware (such as firmware architecture and installed packages) to your repository introduction, this will save others' time.
-- if you have see the error log on terminal like this: hv_netvsc cd9dd876-2fa9-4764-baa7-b44482f85f9f eth0:nvsp_rndis_pkt_complete error status: 2,follow the step below to disable tx checksumming:
--  vim /etc/rc.local
+- If you see an error log in the terminal similar to the following:
+
+  hv_netvsc cd9dd876-2fa9-4764-baa7-b44482f85f9f eth0: nvsp_rndis_pkt_complete error status: 2
+
+  Please follow the steps below to disable TX checksumming:
+
+  vim /etc/rc.local
 
     !/bin/sh
 
