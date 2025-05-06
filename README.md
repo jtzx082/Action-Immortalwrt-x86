@@ -25,7 +25,9 @@ A template for building OpenWrt with GitHub Actions
 -  vim /etc/rc.local
 
 !/bin/sh
+
 (sleep 5 && ethtool -K eth0 tx off) &
+
 exit 0   
   
 ## Credits
