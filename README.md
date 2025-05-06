@@ -23,7 +23,8 @@ A template for building OpenWrt with GitHub Actions
 - Add some meta info of your built firmware (such as firmware architecture and installed packages) to your repository introduction, this will save others' time.
 - if you have see the error log on terminal like this: hv_netvsc cd9dd876-2fa9-4764-baa7-b44482f85f9f eth0:nvsp_rndis_pkt_complete error status: 2,follow the step below to disable tx checksumming:
 -  vim /etc/rc.local
- !/bin/sh
+
+!/bin/sh
 (sleep 5 && ethtool -K eth0 tx off) &
 exit 0   
   
