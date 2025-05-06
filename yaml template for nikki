@@ -82,10 +82,11 @@ dns:
   fake-ip-filter:
     - +.lan
     - +.local
-    - +.time
-    - private_domain
-    - apple_domain
-    - cn_domain
+    - "+.windows.com"
+    - "rule-set,private_domain"
+    - "rule-set:apple_domain"
+    - "rule-set:games_domain"
+    - "rule-set:cn_domain"
   default-nameserver:
     - 223.5.5.5
     - 1.1.1.1
@@ -140,6 +141,8 @@ proxy-groups:
 # 此规则部分没有做防泄露处理，因为弊严重大于利！
 rules:
 # 1. 特殊域名直连/代理 (最高优先级)
+  - DOMAIN-SUFFIX,doh.pub,🎯 直连
+  - DOMAIN-SUFFIX,dns.alidns.com,🎯 直连
   - DOMAIN-SUFFIX,qichiyu.com,🚀 默认代理
   - DOMAIN-SUFFIX,bing.com,🚀 默认代理
   - DOMAIN-SUFFIX,copilot.microsoft.com,🚀 默认代理
@@ -219,6 +222,8 @@ rule-providers:
   bilibili_game_domain: { <<: *domain, url: "https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/meta/geo/geosite/bilibili-game.mrs"}
   bilibili_domain: { <<: *domain, url: "https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/meta/geo/geosite/bilibili.mrs"}
   ehentai_domain: { <<: *domain, url: "https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/meta/geo/geosite/ehentai.mrs"}
+  games_domain: { <<: *domain, url: "https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/meta/geo/geosite/category-games.mrs"}
+
 
   cn_ip: { <<: *ip, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/cn.mrs"}
   google_ip: { <<: *ip, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/google.mrs"}
