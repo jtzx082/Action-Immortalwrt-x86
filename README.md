@@ -16,6 +16,8 @@ A template for building OpenWrt with GitHub Actions
 - Select `Build OpenWrt` on the Actions page.
 - Click the `Run workflow` button.
 - When the build is complete, click the `Artifacts` button in the upper right corner of the Actions page to download the binaries.
+- If you wish to generate firmware with the default configuration, please remove all contents from diy-part2.sh except for the line "#!/bin/bash."
+- 
 
 ## Tips
 
