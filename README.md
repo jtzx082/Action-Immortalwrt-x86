@@ -33,7 +33,26 @@ A template for building OpenWrt with GitHub Actions
 
     (sleep 5 && ethtool -K eth0 tx off) &
 
-    exit 0   
+    exit 0
+
+  - Here are some of the commonly used plugins:
+    
+    ![image](https://github.com/user-attachments/assets/b9b7db6e-e5a0-4fde-871c-8970e14853bd)
+    
+    ![image](https://github.com/user-attachments/assets/a8a0e4bd-dbb8-402d-a507-f762c8ce77cc)
+    
+    ![image](https://github.com/user-attachments/assets/0c934c9c-fd5c-41b7-a1ac-3b76f6d8f8e7)
+    
+    ![image](https://github.com/user-attachments/assets/b3309a63-6e49-451b-986c-4f9d523470da)
+    
+    ![image](https://github.com/user-attachments/assets/bed1a485-67e9-4908-9282-a68bfb1fec94)
+
+
+
+
+
+
+
   
 ## Credits
 
