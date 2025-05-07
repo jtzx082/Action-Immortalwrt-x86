@@ -156,8 +156,6 @@ rules:
   - RULE-SET,xbox_cn_domain,🎮 Xbox_CN
   - RULE-SET,xbox_domain,🎮 Xbox
   - RULE-SET,gamecn_domain,🎯 直连
-  
-  
 # 2. 基础规则 (直连/拒绝)
   - RULE-SET,private_domain,直连
   - RULE-SET,adblock_domain,REJECT
