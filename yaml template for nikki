@@ -83,11 +83,11 @@ dns:
   fake-ip-filter:
     - +.lan
     - +.local
+    - +.windows.com
     - "rule-set,private_domain"
     - "rule-set:apple_domain"
     - "rule-set:games_domain"
     - "rule-set:cn_domain"
-    - "rule-set:microsoft_domain"
     - "rule-set:ai"
     - "rule-set:onedrive_domain"
     - "rule-set:speedtest_domain"
