@@ -83,11 +83,16 @@ dns:
   fake-ip-filter:
     - +.lan
     - +.local
-    - "+.windows.com"
     - "rule-set,private_domain"
     - "rule-set:apple_domain"
     - "rule-set:games_domain"
     - "rule-set:cn_domain"
+    - "rule-set:microsoft_domain"
+    - "rule-set:ai"
+    - "rule-set:onedrive_domain"
+    - "rule-set:speedtest_domain"
+    - "rule-set:steam_domain"
+    - "rule-set:xbox_domain"
   default-nameserver:
     - 223.5.5.5
     - 1.1.1.1
@@ -108,23 +113,23 @@ proxy-groups:
   - {name: 🤖 ChatGPT, <<: *pr}
   - {name: 👨🏿‍💻 GitHub, <<: *pr}
   - {name: 🐬 OneDrive, <<: *pr}
-  - {name: 🪟 Microsoft, <<: *pr}
+  - {name: 🪟 Microsoft, type: select, proxies: [直连,🚀 默认代理, 🔯 香港故转, 🔯 日本故转, ♻️ 香港自动, ♻️ 日本自动, ♻️ 美国自动, ♻️ 自动选择, 🇭🇰 香港节点, 🇯🇵 日本节点, 🇺🇲 美国节点, 🌐 全部节点]}
   - {name: 🎵 TikTok, <<: *pr}
   - {name: 📲 Telegram, <<: *pr}
   - {name: ✨ Instagram, <<: *pr}
   - {name: Ⓜ️ Mega, <<: *pr}
-  - {name: 🎮 Steam_CN, <<: *pr}
+  - {name: 🎮 Steam_CN, type: select, proxies: [直连,🚀 默认代理, 🔯 香港故转, 🔯 日本故转, ♻️ 香港自动, ♻️ 日本自动, ♻️ 美国自动, ♻️ 自动选择, 🇭🇰 香港节点, 🇯🇵 日本节点, 🇺🇲 美国节点, 🌐 全部节点]}
   - {name: 🎮 Steam_unlocked, <<: *pr}
   - {name: 🎮 Steam, <<: *pr}
-  - {name: 🎮 Xbox_CN, <<: *pr}
+  - {name: 🎮 Xbox_CN, type: select, proxies: [直连,🚀 默认代理, 🔯 香港故转, 🔯 日本故转, ♻️ 香港自动, ♻️ 日本自动, ♻️ 美国自动, ♻️ 自动选择, 🇭🇰 香港节点, 🇯🇵 日本节点, 🇺🇲 美国节点, 🌐 全部节点]}
   - {name: 🎮 Xbox, <<: *pr}
   - {name: 🎮 Bilibili Game, <<: *pr}
-  - {name: 📺 Bilibili, <<: *pr}
+  - {name: 📺 Bilibili, type: select, proxies: [直连,🚀 默认代理, 🔯 香港故转, 🔯 日本故转, ♻️ 香港自动, ♻️ 日本自动, ♻️ 美国自动, ♻️ 自动选择, 🇭🇰 香港节点, 🇯🇵 日本节点, 🇺🇲 美国节点, 🌐 全部节点]}
   - {name: 🔞 E-Hentai, <<: *pr}
   - {name: 🎥 NETFLIX, <<: *pr}
-  - {name: ✈️ Speedtest, <<: *pr}
+  - {name: ✈️ Speedtest, type: select, proxies: [直连,🚀 默认代理, 🔯 香港故转, 🔯 日本故转, ♻️ 香港自动, ♻️ 日本自动, ♻️ 美国自动, ♻️ 自动选择, 🇭🇰 香港节点, 🇯🇵 日本节点, 🇺🇲 美国节点, 🌐 全部节点]}
   - {name: 💶 PayPal, <<: *pr}
-  - {name: 🍎 Apple, type: select, proxies: [直连, 🚀 默认代理]}
+  - {name: 🍎 Apple, type: select, proxies: [直连,🚀 默认代理, 🔯 香港故转, 🔯 日本故转, ♻️ 香港自动, ♻️ 日本自动, ♻️ 美国自动, ♻️ 自动选择, 🇭🇰 香港节点, 🇯🇵 日本节点, 🇺🇲 美国节点, 🌐 全部节点]}
   - {name: 🎯 直连, type: select, proxies: [直连, 🚀 默认代理]}
   - {name: 🐟 漏网之鱼, <<: *pr}
   - {name: 🇭🇰 香港节点, type: select, include-all: true, filter: "(?i)港|hk|hongkong|hong kong"}
@@ -156,6 +161,8 @@ rules:
   - RULE-SET,xbox_cn_domain,🎮 Xbox_CN
   - RULE-SET,xbox_domain,🎮 Xbox
   - RULE-SET,gamecn_domain,🎯 直连
+  
+  
 # 2. 基础规则 (直连/拒绝)
   - RULE-SET,private_domain,直连
   - RULE-SET,adblock_domain,REJECT
