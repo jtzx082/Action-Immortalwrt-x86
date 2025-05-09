@@ -97,8 +97,15 @@ dns:
     - 223.5.5.5
     - 1.1.1.1
   nameserver-policy:
-    "rule-set:microsoft_domain":
+    "rule-set:geolocation-!cn":
     - https://dns.adguard-dns.com/dns-query
+    - https://security.cloudflare-dns.com/dns-query
+    "rule-set:gfw_domain":
+    - https://dns.adguard-dns.com/dns-query
+    - https://security.cloudflare-dns.com/dns-query
+    "rule-set:cn_domain":
+    - https://doh.pub/dns-query
+    - https://dns.alidns.com/dns-query
   proxy-server-nameserver:
     - https://doh.pub/dns-query
     - https://dns.alidns.com/dns-query
