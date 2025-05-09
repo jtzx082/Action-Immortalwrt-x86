@@ -75,7 +75,7 @@ tun:
 dns:
   enable: true
   listen: 0.0.0.0:1053
-  ipv6: personally
+  ipv6: false
   respect-rules: true
   enhanced-mode: fake-ip
   fake-ip-range: 198.18.0.1/16
@@ -83,9 +83,9 @@ dns:
   fake-ip-filter:
     - +.lan
     - +.local
-    - +.windows.com
     - "rule-set,private_domain"
     - "rule-set:apple_domain"
+    - "rule-set:microsoft_domain"
     - "rule-set:games_domain"
     - "rule-set:cn_domain"
     - "rule-set:ai"
@@ -96,6 +96,9 @@ dns:
   default-nameserver:
     - 223.5.5.5
     - 1.1.1.1
+  nameserver-policy:
+    "rule-set:microsoft_domain":
+    - https://dns.adguard-dns.com/dns-query
   proxy-server-nameserver:
     - https://doh.pub/dns-query
     - https://dns.alidns.com/dns-query
