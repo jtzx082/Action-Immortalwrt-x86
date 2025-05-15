@@ -83,24 +83,25 @@ dns:
   fake-ip-filter:
     - +.lan
     - +.local
+    - +.msftconnecttest.com
+    - +.msftncsi.com
     - +.windows.com
     - "rule-set:private_domain"
     - "rule-set:apple_domain"
     - "rule-set:microsoft_cn_domain"
-    - "rule-set:gamecn_domain"
+    - "rule-set:games_domain"
     - "rule-set:cn_domain"
   default-nameserver:
     - 223.5.5.5
-    - 1.1.1.1
+    - 119.29.29.29
+  proxy-server-nameserver:
+    - https://doh.pub/dns-query
+    - https://dns.alidns.com/dns-query
   nameserver-policy:
     'rule-set:microsoft_cn_domain':
     - https://doh.pub/dns-query
     - https://dns.alidns.com/dns-query
-    'rule-set:gamecn_domain':
-    - https://doh.pub/dns-query
-    - https://dns.alidns.com/dns-query
-
-  proxy-server-nameserver:
+    'rule-set:games_domain':
     - https://doh.pub/dns-query
     - https://dns.alidns.com/dns-query
   nameserver:
@@ -116,15 +117,13 @@ proxy-groups:
   - {name: 🔍 Google, <<: *pr}
   - {name: 🤖 ChatGPT, <<: *pr}
   - {name: 👨🏿‍💻 GitHub, <<: *pr}
-  - {name: 🪟 Microsoft, type: select, proxies: [直连,🚀 默认代理, 🔯 香港故转, 🔯 日本故转, ♻️ 香港自动, ♻️ 日本自动, ♻️ 美国自动, ♻️ 自动选择, 🇭🇰 香港节点, 🇯🇵 日本节点, 🇺🇲 美国节点, 🌐 全部节点]}
+  - {name: 🪟 Microsoft, <<: *pr}
   - {name: 🎵 TikTok, <<: *pr}
   - {name: 📲 Telegram, <<: *pr}
   - {name: ✨ Instagram, <<: *pr}
   - {name: Ⓜ️ Mega, <<: *pr}
-  - {name: 🎮 Steam_CN, type: select, proxies: [直连,🚀 默认代理, 🔯 香港故转, 🔯 日本故转, ♻️ 香港自动, ♻️ 日本自动, ♻️ 美国自动, ♻️ 自动选择, 🇭🇰 香港节点, 🇯🇵 日本节点, 🇺🇲 美国节点, 🌐 全部节点]}
-  - {name: 🎮 Steam_unlocked, <<: *pr}
   - {name: 🎮 Steam, <<: *pr}
-  - {name: 🎮 Bilibili Game, <<: *pr}
+  - {name: 🎮 Xbox, type: select, proxies: [直连,🚀 默认代理, 🔯 香港故转, 🔯 日本故转, ♻️ 香港自动, ♻️ 日本自动, ♻️ 美国自动, ♻️ 自动选择, 🇭🇰 香港节点, 🇯🇵 日本节点, 🇺🇲 美国节点, 🌐 全部节点]}
   - {name: 📺 Bilibili, type: select, proxies: [直连,🚀 默认代理, 🔯 香港故转, 🔯 日本故转, ♻️ 香港自动, ♻️ 日本自动, ♻️ 美国自动, ♻️ 自动选择, 🇭🇰 香港节点, 🇯🇵 日本节点, 🇺🇲 美国节点, 🌐 全部节点]}
   - {name: 🔞 E-Hentai, <<: *pr}
   - {name: 🎥 NETFLIX, <<: *pr}
@@ -150,21 +149,18 @@ rules:
 # 1. 特殊域名直连/代理 (最高优先级)
   - DOMAIN-SUFFIX,doh.pub,🎯 直连
   - DOMAIN-SUFFIX,dns.alidns.com,🎯 直连
-  - DOMAIN-SUFFIX,qichiyu.com,🚀 默认代理
   - DOMAIN-SUFFIX,bing.com,🚀 默认代理
-  - DOMAIN-SUFFIX,copilot.microsoft.com,🚀 默认代理
   - RULE-SET,microsoft_cn_domain,🎯 直连
-  - RULE-SET,bilibili_game_domain,🎮 Bilibili Game
-  - RULE-SET,bilibili_domain,📺 Bilibili
-  - RULE-SET,ehentai_domain,🔞 E-Hentai
-  - RULE-SET,steam_cn_domain,🎮 Steam_CN
-  - RULE-SET,steamunlocked_domain,🎮 Steam_unlocked
+  - RULE-SET,steam_cn_domain,🎯 直连
   - RULE-SET,steam_domain,🎮 Steam
-  - RULE-SET,gamecn_domain,🎯 直连
+  - RULE-SET,xbox_domain,🎮 Xbox
+  - RULE-SET,games_domain,🎯 直连
 # 2. 基础规则 (直连/拒绝)
   - RULE-SET,private_domain,直连
   - RULE-SET,adblock_domain,REJECT
 # 3. 按服务分流 (中等优先级)
+  - RULE-SET,bilibili_domain,📺 Bilibili
+  - RULE-SET,ehentai_domain,🔞 E-Hentai
   - RULE-SET,apple_domain,🍎 Apple
   - RULE-SET,ai,🤖 ChatGPT
   - RULE-SET,github_domain,👨🏿‍💻 GitHub
@@ -203,7 +199,7 @@ rule-providers:
   google_domain: { <<: *domain, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/google.mrs"}
   github_domain: { <<: *domain, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/github.mrs"}
   telegram_domain: { <<: *domain, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/telegram.mrs"}
-  gamecn_domain: { <<: *domain, url: "https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/meta/geo/geosite/category-games.mrs"}
+  gamecn_domain: { <<: *domain, url: "https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/meta/geo/geosite/category-games@cn.mrs"}
   netflix_domain: { <<: *domain, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/netflix.mrs"}
   paypal_domain: { <<: *domain, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/paypal.mrs"}
   microsoft_domain: { <<: *domain, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geosite/microsoft.mrs"}
@@ -218,12 +214,11 @@ rule-providers:
   mega_domain: { <<: *domain, url: "https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/meta/geo/geosite/mega.mrs"}
   steam_domain: { <<: *domain, url: "https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/meta/geo/geosite/steam.mrs"}
   steam_cn_domain: { <<: *domain, url: "https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/meta/geo/geosite/steam@cn.mrs"}
-  steamunlocked_domain: { <<: *domain, url: "https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/meta/geo/geosite/steamunlocked.mrs"}
-  bilibili_game_domain: { <<: *domain, url: "https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/meta/geo/geosite/bilibili-game.mrs"}
   bilibili_domain: { <<: *domain, url: "https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/meta/geo/geosite/bilibili.mrs"}
   ehentai_domain: { <<: *domain, url: "https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/meta/geo/geosite/ehentai.mrs"}
   games_domain: { <<: *domain, url: "https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/meta/geo/geosite/category-games.mrs"}
   microsoft_cn_domain: { <<: *domain, url: "https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/meta/geo/geosite/microsoft@cn.mrs"}
+  xbox_domain: { <<: *domain, url: "https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/meta/geo/geosite/xbox.mrs"}
 
   cn_ip: { <<: *ip, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/cn.mrs"}
   google_ip: { <<: *ip, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/google.mrs"}
