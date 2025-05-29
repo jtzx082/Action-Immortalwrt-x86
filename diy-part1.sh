@@ -21,4 +21,4 @@ echo 'src-git passwall2 https://github.com/xiaorouji/openwrt-passwall2' >>feeds.
 # echo 'src-git wizard https://github.com/sirpdboy/luci-app-wizard' >>feeds.conf.default
 echo 'src-git partexp https://github.com/sirpdboy/luci-app-partexp.git' >>feeds.conf.default
 echo 'src-git netspeedtest https://github.com/sirpdboy/luci-app-netspeedtest' >>feeds.conf.default
-echo 'src-git coolsnowwolf https://github.com/coolsnowwolf/luci.git' >>feeds.conf.default
+# echo 'src-git coolsnowwolf https://github.com/coolsnowwolf/luci.git;openwrt-24.10' >>feeds.conf.default
