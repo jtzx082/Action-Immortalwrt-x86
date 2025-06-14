@@ -131,7 +131,7 @@ config forwarding 'lantovpn'
         option dest 'vpn'
 EOF
 
-#ImmortalWrt 软件仓库镜像
-sed -e 's,https://downloads.immortalwrt.org,https://mirrors.sjtug.sjtu.edu.cn/immortalwrt,g' \
-    -e 's,https://mirrors.vsean.net/openwrt,https://mirrors.sjtug.sjtu.edu.cn/immortalwrt,g' \
-    -i.bak /etc/opkg/distfeeds.conf
+# #ImmortalWrt 软件仓库镜像
+# sed -e 's,https://downloads.immortalwrt.org,https://mirrors.sjtug.sjtu.edu.cn/immortalwrt,g' \
+#     -e 's,https://mirrors.vsean.net/openwrt,https://mirrors.sjtug.sjtu.edu.cn/immortalwrt,g' \
+#     -i.bak /etc/opkg/distfeeds.conf
