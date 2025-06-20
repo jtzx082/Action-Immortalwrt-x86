@@ -10,6 +10,16 @@ proxy-providers:
       url: https://www.gstatic.com/generate_204
       interval: 300
     proxy: 直连
+  SimpleLink:
+    url: ""
+    type: http
+    interval: 86400
+    health-check:
+      enable: true
+      url: https://www.gstatic.com/generate_204
+      interval: 300
+    exclude-filter: "官网|官方|过期|时间|流量|TG" 
+    proxy: 直连
 
 # 节点信息
 proxies:
@@ -83,13 +93,9 @@ dns:
   fake-ip-filter:
     - +.lan
     - +.local
-    - +.msftconnecttest.com
-    - +.msftncsi.com
-    - +.windows.com
+    - "rule-set:tailscale_domain"
     - "rule-set:private_domain"
     - "rule-set:apple_domain"
-    - "rule-set:microsoft_cn_domain"
-    - "rule-set:games_domain"
     - "rule-set:cn_domain"
   default-nameserver:
     - 223.5.5.5
@@ -117,11 +123,13 @@ proxy-groups:
   - {name: 🔍 Google, <<: *pr}
   - {name: 🤖 ChatGPT, <<: *pr}
   - {name: 👨🏿‍💻 GitHub, <<: *pr}
+  - {name: 🪟 Microsoft_CN, type: select, proxies: [直连,🚀 默认代理, 🔯 香港故转, 🔯 日本故转, ♻️ 香港自动, ♻️ 日本自动, ♻️ 美国自动, ♻️ 自动选择, 🇭🇰 香港节点, 🇯🇵 日本节点, 🇺🇲 美国节点, 🌐 全部节点]}
   - {name: 🪟 Microsoft, <<: *pr}
   - {name: 🎵 TikTok, <<: *pr}
   - {name: 📲 Telegram, <<: *pr}
   - {name: ✨ Instagram, <<: *pr}
   - {name: Ⓜ️ Mega, <<: *pr}
+  - {name: 🎮 Steam_CN, type: select, proxies: [直连,🚀 默认代理, 🔯 香港故转, 🔯 日本故转, ♻️ 香港自动, ♻️ 日本自动, ♻️ 美国自动, ♻️ 自动选择, 🇭🇰 香港节点, 🇯🇵 日本节点, 🇺🇲 美国节点, 🌐 全部节点]}
   - {name: 🎮 Steam, <<: *pr}
   - {name: 🎮 Xbox, type: select, proxies: [直连,🚀 默认代理, 🔯 香港故转, 🔯 日本故转, ♻️ 香港自动, ♻️ 日本自动, ♻️ 美国自动, ♻️ 自动选择, 🇭🇰 香港节点, 🇯🇵 日本节点, 🇺🇲 美国节点, 🌐 全部节点]}
   - {name: 📺 Bilibili, type: select, proxies: [直连,🚀 默认代理, 🔯 香港故转, 🔯 日本故转, ♻️ 香港自动, ♻️ 日本自动, ♻️ 美国自动, ♻️ 自动选择, 🇭🇰 香港节点, 🇯🇵 日本节点, 🇺🇲 美国节点, 🌐 全部节点]}
@@ -150,8 +158,9 @@ rules:
   - DOMAIN-SUFFIX,doh.pub,🎯 直连
   - DOMAIN-SUFFIX,dns.alidns.com,🎯 直连
   - DOMAIN-SUFFIX,bing.com,🚀 默认代理
-  - RULE-SET,microsoft_cn_domain,🎯 直连
-  - RULE-SET,steam_cn_domain,🎯 直连
+  - RULE-SET,tailscale_domain,🎯 直连
+  - RULE-SET,microsoft_cn_domain,🪟 Microsoft_CN
+  - RULE-SET,steam_cn_domain,🎮 Steam_CN
   - RULE-SET,steam_domain,🎮 Steam
   - RULE-SET,xbox_domain,🎮 Xbox
   - RULE-SET,games_domain,🎯 直连
@@ -219,6 +228,7 @@ rule-providers:
   games_domain: { <<: *domain, url: "https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/meta/geo/geosite/category-games.mrs"}
   microsoft_cn_domain: { <<: *domain, url: "https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/meta/geo/geosite/microsoft@cn.mrs"}
   xbox_domain: { <<: *domain, url: "https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/meta/geo/geosite/xbox.mrs"}
+  tailscale_domain: { <<: *domain, url: "https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/meta/geo/geosite/tailscale.mrs"}
 
   cn_ip: { <<: *ip, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/cn.mrs"}
   google_ip: { <<: *ip, url: "https://raw.githubusercontent.com/MetaCubeX/meta-rules-dat/meta/geo/geoip/google.mrs"}
