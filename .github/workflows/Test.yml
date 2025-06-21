@@ -12,7 +12,7 @@
 
 name: OpenWrt Builder Test
 
-on:
+#on:
   repository_dispatch:
   workflow_dispatch:
     inputs:
@@ -34,7 +34,7 @@ on:
         required: true
         default: false
 
-jobs:
+#jobs:
   build:
     runs-on: ubuntu-latest
 
