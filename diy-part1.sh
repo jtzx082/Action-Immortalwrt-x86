@@ -21,3 +21,4 @@ echo 'src-git partexp https://github.com/sirpdboy/luci-app-partexp.git;main' >>f
 echo 'src-git netspeedtest https://github.com/sirpdboy/luci-app-netspeedtest.git' >>feeds.conf.default
 echo 'src-git netwizard https://github.com/sirpdboy/luci-app-netwizard.git' >>feeds.conf.default
 echo 'src-git watchdog https://github.com/sirpdboy/luci-app-watchdog.git' >>feeds.conf.default
+echo 'src-git advancedplus https://github.com/sirpdboy/luci-app-advancedplus.git' >>feeds.conf.default
