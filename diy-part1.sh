@@ -20,3 +20,4 @@ echo 'src-git nikki https://github.com/nikkinikki-org/OpenWrt-nikki.git;main' >>
 echo 'src-git partexp https://github.com/sirpdboy/luci-app-partexp.git;main' >>feeds.conf.default
 echo 'src-git netspeedtest https://github.com/sirpdboy/luci-app-netspeedtest.git' >>feeds.conf.default
 echo 'src-git wizard https://github.com/sirpdboy/luci-app-netwizard.git' >>feeds.conf.default
+echo 'src-git watchdog https://github.com/sirpdboy/luci-app-watchdog.git' >>feeds.conf.default
