@@ -25,3 +25,4 @@ echo 'src-git advancedplus https://github.com/sirpdboy/luci-app-advancedplus.git
 echo 'src-git taskplan https://github.com/sirpdboy/luci-app-taskplan.git' >>feeds.conf.default
 echo 'src-git timecontrol https://github.com/sirpdboy/luci-app-timecontrol.git' >>feeds.conf.default
 echo 'src-git kucat https://github.com/sirpdboy/luci-theme-kucat.git' >>feeds.conf.default
+echo 'src-git kucat-config https://github.com/sirpdboy/luci-app-kucat-config.git' >>feeds.conf.default
