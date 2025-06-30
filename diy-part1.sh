@@ -28,3 +28,4 @@ echo 'src-git kucat https://github.com/sirpdboy/luci-theme-kucat.git' >>feeds.co
 echo 'src-git kucat-config https://github.com/sirpdboy/luci-app-kucat-config.git' >>feeds.conf.default
 echo 'src-git parentcontrol https://github.com/sirpdboy/luci-app-parentcontrol.git' >>feeds.conf.default
 echo 'src-git eqosplus https://github.com/sirpdboy/luci-app-eqosplus.git' >>feeds.conf.default
+echo 'src-git poweroffdevice https://github.com/sirpdboy/luci-app-poweroffdevice.git' >>feeds.conf.default
