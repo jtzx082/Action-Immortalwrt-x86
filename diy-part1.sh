@@ -24,8 +24,8 @@ echo 'src-git watchdog https://github.com/sirpdboy/luci-app-watchdog.git' >>feed
 echo 'src-git advancedplus https://github.com/sirpdboy/luci-app-advancedplus.git' >>feeds.conf.default
 echo 'src-git taskplan https://github.com/sirpdboy/luci-app-taskplan.git' >>feeds.conf.default
 echo 'src-git timecontrol https://github.com/sirpdboy/luci-app-timecontrol.git' >>feeds.conf.default
-echo 'src-git kucat https://github.com/sirpdboy/luci-theme-kucat.git;js' >>feeds.conf.default
-echo 'src-git kucat-config https://github.com/sirpdboy/luci-app-kucat-config.git' >>feeds.conf.default
+#echo 'src-git kucat https://github.com/sirpdboy/luci-theme-kucat.git;js' >>feeds.conf.default
+#echo 'src-git kucat-config https://github.com/sirpdboy/luci-app-kucat-config.git' >>feeds.conf.default
 echo 'src-git parentcontrol https://github.com/sirpdboy/luci-app-parentcontrol.git' >>feeds.conf.default
 echo 'src-git eqosplus https://github.com/sirpdboy/luci-app-eqosplus.git' >>feeds.conf.default
 echo 'src-git poweroffdevice https://github.com/sirpdboy/luci-app-poweroffdevice.git' >>feeds.conf.default
