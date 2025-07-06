@@ -16,14 +16,15 @@
 # Add a feed source
 # echo 'src-git helloworld https://github.com/fw876/helloworld' >>feeds.conf.default
 #echo 'src-git passwall https://github.com/xiaorouji/openwrt-passwall' >>feeds.conf.default
+echo 'src-git extra https://github.com/immortalwrt/packages.git;openwrt-24.10' >> feeds.conf.default
 echo 'src-git nikki https://github.com/nikkinikki-org/OpenWrt-nikki.git;main' >>feeds.conf.default
 echo 'src-git partexp https://github.com/sirpdboy/luci-app-partexp.git;main' >>feeds.conf.default
 echo 'src-git netspeedtest https://github.com/sirpdboy/luci-app-netspeedtest.git' >>feeds.conf.default
 echo 'src-git netwizard https://github.com/sirpdboy/luci-app-netwizard.git' >>feeds.conf.default
 echo 'src-git watchdog https://github.com/sirpdboy/luci-app-watchdog.git' >>feeds.conf.default
-echo 'src-git advancedplus https://github.com/sirpdboy/luci-app-advancedplus.git' >>feeds.conf.default
+echo 'src-git advancedplus https://github.com/sirpdboy/luci-app-advancedplus.git;v1.8.3' >>feeds.conf.default
 echo 'src-git taskplan https://github.com/sirpdboy/luci-app-taskplan.git' >>feeds.conf.default
 echo 'src-git timecontrol https://github.com/sirpdboy/luci-app-timecontrol.git' >>feeds.conf.default
-echo 'src-git parentcontrol https://github.com/sirpdboy/luci-app-parentcontrol.git' >>feeds.conf.default
-echo 'src-git eqosplus https://github.com/sirpdboy/luci-app-eqosplus.git' >>feeds.conf.default
+echo 'src-git parentcontrol https://github.com/sirpdboy/luci-app-parentcontrol.git;v1.7.2' >>feeds.conf.default
+echo 'src-git eqosplus https://github.com/sirpdboy/luci-app-eqosplus.git;v1.2.5' >>feeds.conf.default
 echo 'src-git poweroffdevice https://github.com/sirpdboy/luci-app-poweroffdevice.git' >>feeds.conf.default
