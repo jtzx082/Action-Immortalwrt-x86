@@ -13,9 +13,6 @@
 # Uncomment a feed source
 #sed -i 's/^#\(.*helloworld\)/\1/' feeds.conf.default
 
-# 修复json-c头文件路径
-ln -sf ${{ github.workspace }}/staging_dir/target-x86_64_musl/usr/include/json-c ${{ github.workspace }}/staging_dir/target-x86_64_musl/usr/include/json
-
 # Add a feed source
 # echo 'src-git helloworld https://github.com/fw876/helloworld' >>feeds.conf.default
 #echo 'src-git passwall https://github.com/xiaorouji/openwrt-passwall' >>feeds.conf.default
