@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# https://github.com/P3TERX/Actions-OpenWrt
+# https://github.com/P3TERX/动作-OpenWrt
 # File name: diy-part1.sh
 # Description: OpenWrt DIY script part 1 (Before Update feeds)
 #
@@ -27,3 +27,6 @@ echo 'src-git timecontrol https://github.com/sirpdboy/luci-app-timecontrol.git' 
 #echo 'src-git parentcontrol https://github.com/sirpdboy/luci-app-parentcontrol.git;v1.7.2' >>feeds.conf.default
 #echo 'src-git eqosplus https://github.com/sirpdboy/luci-app-eqosplus.git;v1.2.5' >>feeds.conf.default
 echo 'src-git poweroffdevice https://github.com/sirpdboy/luci-app-poweroffdevice.git' >>feeds.conf.default
+echo 'src-git store https://github.com/linkease/istore.git' >>feeds.conf.default
+echo 'src-git linkease_nas https://github.com/linkease/nas-packages.git' >>feeds.conf.default
+echo 'src-git linkease_nas_luci https://github.com/linkease/nas-packages-luci.git' >>feeds.conf.default
