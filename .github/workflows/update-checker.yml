@@ -1,5 +1,5 @@
 #
-# https://github.com/P3TERX/Actions-OpenWrt
+# https://github.com/P3TERX/动作-OpenWrt
 #
 # File: .github/workflows/update-checker.yml
 # Description: Source code update checker
@@ -16,10 +16,10 @@ env:
   REPO_URL: https://github.com/immortalwrt/immortalwrt #检查源码地址
   REPO_BRANCH: openwrt-24.10
 
-#on:
-#  workflow_dispatch:
-#  schedule:
-#    - cron: 0 */06 * * *
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: 0 */06 * * *
 
 jobs:
   check:
