@@ -1,4 +1,3 @@
-
 #!/bin/bash
 #
 # https://github.com/P3TERX/动作-OpenWrt
