@@ -5,7 +5,7 @@
 # --- 全局配置 ---
 # 请在此处修改为您服务器的公网网卡名称。
 # 您可以使用 `ip a` 或 `ifconfig` 命令来查找它。常见的名称有: eth0, ens3, enp1s0 等。
-PUBLIC_INTERFACE="enp1s0"
+PUBLIC_INTERFACE="eth0"
 
 # --- 脚本主体 ---
 
