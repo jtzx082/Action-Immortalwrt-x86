@@ -34,8 +34,9 @@ SERVER_PUBLIC_KEY=$(echo "$SERVER_PRIVATE_KEY" | wg pubkey)
 # 使用 cat 和 heredoc 的方式创建文件，比 nano 更适合脚本化操作
 echo "📝 正在创建 wg0.conf 配置文件..."
 sudo bash -c "cat > /etc/wireguard/wg0.conf" <<EOF
+# 请在Address处修改为您想要的虚拟网卡地址。
 [Interface]
-Address = 192.168.123.8/24 # 请在此处修改为您想要的虚拟网卡地址。
+Address = 192.168.123.8/24
 SaveConfig = true
 PrivateKey = $SERVER_PRIVATE_KEY
 ListenPort = 51820
