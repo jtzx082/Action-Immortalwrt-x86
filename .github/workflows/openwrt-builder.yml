@@ -139,7 +139,7 @@ jobs:
         if: env.UPLOAD_FIRMWARE == 'true' && !cancelled()
         run: |
           cd openwrt/bin/targets/*/*
-          rm -rf packages *combined.img.gz *.bin *.config *.buildinfo *.json sha256sums *.manifest *rootfs.img
+          rm -rf packages *combined.img.gz *.bin *.config *.buildinfo *.json sha256sums *.manifest
           echo "FIRMWARE=$PWD" >> $GITHUB_ENV
           echo "status=success" >> $GITHUB_OUTPUT
 
