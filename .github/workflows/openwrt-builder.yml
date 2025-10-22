@@ -61,7 +61,7 @@ jobs:
         env:
           DEBIAN_FRONTEND: noninteractive
         run: |
-          
+          sudo apt update -y
           sudo apt full-upgrade -y
           sudo apt install -y ack antlr3 asciidoc autoconf automake autopoint binutils bison build-essential \
           bzip2 ccache clang cmake cpio curl device-tree-compiler ecj fastjar flex gawk gettext gcc-multilib \
