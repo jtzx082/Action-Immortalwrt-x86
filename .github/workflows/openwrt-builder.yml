@@ -199,9 +199,10 @@ jobs:
           token: ${{ secrets.ACTION }}  #更新为自建repo权限Token
 
       - name: Remove old Releases
-        uses: actions/delete-releases@v1
+        uses: gautamkrishnar/delete-older-releases@v0.2.6
         if: env.UPLOAD_RELEASE == 'true' && !cancelled()
         with:
           keep_latest: 3
           delete_tags: true
-          token: ${{ secrets.ACTION }} #更新为自建repo权限Token
+        env:
+          GITHUB_TOKEN: ${{ secrets.ACTION }}
