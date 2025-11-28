@@ -15,3 +15,9 @@
 
 # Add a feed source
 # echo 'src-git nikki https://github.com/nikkinikki-org/OpenWrt-nikki.git;main' >>feeds.conf.default
+
+# 添加 PassWall 依赖源 (必须)
+echo "src-git passwall_packages https://github.com/xiaorouji/openwrt-passwall-packages.git;main" >> feeds.conf.default
+
+# 添加 PassWall 2 插件源
+echo "src-git passwall2 https://github.com/xiaorouji/openwrt-passwall2.git;main" >> feeds.conf.default
