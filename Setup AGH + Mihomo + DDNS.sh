@@ -16,8 +16,10 @@ MIHOMO_BIN="/usr/bin/mihomo"
 ZASHBOARD_DIR="$MIHOMO_DIR/ui/zashboard"
 RESOLVED_CONF="/etc/systemd/resolved.conf.d/adguardhome.conf"
 
-# 依赖检查标志
+# 全局变量
 DEPENDENCIES_CHECKED=false
+CDN_PREFIX=""
+CDN_NAME="未开启"
 
 # 检查是否为 root 用户
 if [[ $EUID -ne 0 ]]; then
@@ -92,6 +94,53 @@ check_status() {
     fi
 }
 
+# CDN 选择菜单
+select_cdn() {
+    echo -e "#############################################################"
+    echo -e "#                  设置 GitHub 加速镜像源                   #"
+    echo -e "#############################################################"
+    echo -e "说明: jsDelivr 不支持 Release 二进制文件加速，请使用以下镜像。"
+    echo -e ""
+    echo -e " 1. 关闭加速 (直接连接 GitHub)"
+    echo -e " 2. ghproxy.net (默认, 推荐)"
+    echo -e " 3. mirror.ghproxy.com (备用)"
+    echo -e " 4. hub.gitmirror.com (速度快)"
+    echo -e " 5. 自定义镜像源"
+    echo -e ""
+    read -p " 请选择 [1-5]: " cdn_choice
+    
+    case $cdn_choice in
+        1)
+            CDN_PREFIX=""
+            CDN_NAME="未开启"
+            ;;
+        2)
+            CDN_PREFIX="https://ghproxy.net/"
+            CDN_NAME="ghproxy.net"
+            ;;
+        3)
+            CDN_PREFIX="https://mirror.ghproxy.com/"
+            CDN_NAME="mirror.ghproxy.com"
+            ;;
+        4)
+            CDN_PREFIX="https://hub.gitmirror.com/"
+            CDN_NAME="hub.gitmirror.com"
+            ;;
+        5)
+            read -p " 请输入镜像地址 (例如 https://ghproxy.net/ ，需以/结尾): " custom_cdn
+            if [[ "$custom_cdn" != */ ]]; then
+                custom_cdn="${custom_cdn}/"
+            fi
+            CDN_PREFIX="$custom_cdn"
+            CDN_NAME="自定义 ($custom_cdn)"
+            ;;
+        *)
+            echo -e "${RED}无效选项，保持不变。${PLAIN}"
+            ;;
+    esac
+    echo -e "${GREEN}CDN 已设置为: $CDN_NAME${PLAIN}"
+}
+
 # ================= 安装/更新 核心逻辑 =================
 
 # 1. 安装 AdGuardHome
@@ -103,13 +152,13 @@ install_agh() {
         sleep 2
     fi
     cd /tmp
+    # AGH 使用官方静态源，不走 GitHub CDN
     wget -O AdGuardHome_linux_amd64.tar.gz https://static.adguard.com/adguardhome/release/AdGuardHome_linux_amd64.tar.gz
     if [ $? -ne 0 ]; then
         echo -e "${RED}下载失败，请检查网络连接。${PLAIN}"
         return
     fi
     
-    # 停止服务以进行覆盖
     systemctl stop AdGuardHome > /dev/null 2>&1
     
     tar -zxvf AdGuardHome_linux_amd64.tar.gz -C /opt/ > /dev/null
@@ -117,7 +166,6 @@ install_agh() {
     
     cd $AGH_DIR
     ./AdGuardHome -s install > /dev/null 2>&1
-    # 如果已经是 install 状态，上面的命令可能报错，忽略即可，确保服务启动
     systemctl restart AdGuardHome
 
     echo -e "${GREEN}AdGuardHome 安装/更新完成！${PLAIN}"
@@ -151,14 +199,13 @@ install_mihomo() {
         fi
         download_url=$(curl -s https://api.github.com/repos/vernesong/mihomo/releases | jq -r ".[0].assets[] | $jq_filter | .browser_download_url" | head -n 1)
 
-        # 降级处理
         if [ -z "$download_url" ] && [ "$CPU_ARCH_LEVEL" != "v1" ]; then
             echo -e "${YELLOW}未找到对应架构专版，尝试下载通用版...${PLAIN}"
             jq_filter='select(.name | contains("linux-amd64") and contains("smart") and contains(".gz") and (contains("v2")|not) and (contains("v3")|not))'
             download_url=$(curl -s https://api.github.com/repos/vernesong/mihomo/releases | jq -r ".[0].assets[] | $jq_filter | .browser_download_url" | head -n 1)
         fi
         
-        # LightGBM Model 更新逻辑
+        # LightGBM Model
         if [ -n "$download_url" ]; then
             echo -e ""
             echo -e "${YELLOW}是否下载/更新 LightGBM Model?${PLAIN}"
@@ -176,8 +223,9 @@ install_mihomo() {
             esac
             if [ -n "$model_src_name" ]; then
                 mkdir -p "$MIHOMO_RUN_DIR"
-                echo -e "${BLUE}正在下载 $model_src_name 并重命名为 Model.bin ...${PLAIN}"
-                wget -O "$MIHOMO_RUN_DIR/Model.bin" "https://github.com/vernesong/mihomo/releases/download/LightGBM-Model/$model_src_name"
+                local model_url="${CDN_PREFIX}https://github.com/vernesong/mihomo/releases/download/LightGBM-Model/$model_src_name"
+                echo -e "${BLUE}正在下载 $model_src_name ...${PLAIN}"
+                wget -O "$MIHOMO_RUN_DIR/Model.bin" "$model_url"
                 [[ $? -eq 0 ]] && model_downloaded=true || echo -e "${RED}模型下载失败。${PLAIN}"
             fi
         fi
@@ -190,7 +238,7 @@ install_mihomo() {
             jq_filter="select(.name | contains(\"linux-amd64-${CPU_ARCH_LEVEL}\") and contains(\".gz\") and (contains(\"compatible\")|not))"
         fi
         download_url=$(curl -s https://api.github.com/repos/MetaCubeX/mihomo/releases/latest | jq -r ".assets[] | $jq_filter | .browser_download_url" | head -n 1)
-        # 降级
+        
         if [ -z "$download_url" ] && [ "$CPU_ARCH_LEVEL" != "v1" ]; then
              jq_filter='select(.name | contains("linux-amd64") and contains(".gz") and (contains("v2")|not) and (contains("v3")|not) and (contains("compatible")|not))'
              download_url=$(curl -s https://api.github.com/repos/MetaCubeX/mihomo/releases/latest | jq -r ".assets[] | $jq_filter | .browser_download_url" | head -n 1)
@@ -202,17 +250,22 @@ install_mihomo() {
         return
     fi
 
-    echo -e "下载链接: $download_url"
+    # 应用 CDN 前缀
+    local final_url="${CDN_PREFIX}${download_url}"
+    echo -e "下载链接 (已处理): $final_url"
     
-    # 停止服务以覆盖文件
     systemctl stop mihomo > /dev/null 2>&1
     
-    wget -O /tmp/mihomo.gz "$download_url"
+    wget -O /tmp/mihomo.gz "$final_url"
+    if [ $? -ne 0 ]; then
+        echo -e "${RED}下载失败。${PLAIN}"
+        return
+    fi
+
     gzip -d /tmp/mihomo.gz
     mv /tmp/mihomo $MIHOMO_BIN
     chmod +x $MIHOMO_BIN
 
-    # 只有配置文件不存在时才生成，更新时不覆盖
     if [ ! -f "$MIHOMO_DIR/config.yaml" ]; then
         echo -e "${YELLOW}生成默认 config.yaml...${PLAIN}"
         cat > $MIHOMO_DIR/config.yaml <<EOF
@@ -268,12 +321,14 @@ install_ddns_go() {
         return
     fi
 
-    echo -e "下载链接: $download_url"
+    # 应用 CDN 前缀
+    local final_url="${CDN_PREFIX}${download_url}"
+    echo -e "下载链接 (已处理): $final_url"
     
     systemctl stop ddns-go > /dev/null 2>&1
     
     mkdir -p $DDNS_GO_DIR
-    wget -O /tmp/ddns-go.tar.gz "$download_url"
+    wget -O /tmp/ddns-go.tar.gz "$final_url"
     
     if [ $? -ne 0 ]; then
         echo -e "${RED}下载失败。${PLAIN}"
@@ -297,7 +352,11 @@ install_ddns_go() {
 install_zdashboard_only() {
     mkdir -p $MIHOMO_DIR/ui
     cd /tmp
-    wget -O zdashboard.zip https://github.com/Zephyruso/zashboard/archive/refs/heads/gh-pages.zip
+    # 应用 CDN
+    local dash_url="${CDN_PREFIX}https://github.com/Zephyruso/zashboard/archive/refs/heads/gh-pages.zip"
+    echo -e "${BLUE}正在下载 Zdashboard...${PLAIN}"
+    wget -O zdashboard.zip "$dash_url"
+    
     if [ $? -eq 0 ]; then
         unzip -o zdashboard.zip > /dev/null
         rm -rf $ZASHBOARD_DIR
@@ -431,7 +490,6 @@ check_updates_menu() {
     # 获取 Mihomo 版本 (本地)
     local mihomo_local="未安装"
     [ -f "$MIHOMO_BIN" ] && mihomo_local=$($MIHOMO_BIN -v 2>/dev/null | head -n 1 | cut -d ' ' -f 3)
-    # Mihomo Remote 比较复杂，只显示官方 Latest Tag 供参考
     local mihomo_remote=$(curl -s https://api.github.com/repos/MetaCubeX/mihomo/releases/latest | jq -r .tag_name)
 
     clear
@@ -446,14 +504,12 @@ check_updates_menu() {
     echo -e " 2. Mihomo (Core)"
     echo -e "    本地: ${YELLOW}$mihomo_local${PLAIN}"
     echo -e "    远程: ${GREEN}$mihomo_remote${PLAIN} (官方Latest)"
-    echo -e "    * Smart版请直接选择更新，脚本会自动抓取最新Smart构建"
     echo -e ""
     echo -e " 3. ddns-go"
     echo -e "    本地: ${YELLOW}$ddns_local${PLAIN}"
     echo -e "    远程: ${GREEN}$ddns_remote${PLAIN}"
     echo -e ""
     echo -e " ------------------------------------------------------------"
-    echo -e " Please choose update action:"
     echo -e " a. 更新 AdGuardHome"
     echo -e " b. 更新 Mihomo + Model.bin (可重选版本)"
     echo -e " c. 更新 ddns-go"
@@ -480,6 +536,8 @@ while true; do
     echo -e "#############################################################"
     echo -e "#           全能一键安装脚本 (AGH + Mihomo + DDNS)          #"
     echo -e "#############################################################"
+    echo -e "#   CDN 状态: ${CDN_NAME}"
+    echo -e "#############################################################"
     echo -e ""
     echo -e " --- 安装选项 ---"
     echo -e " 1. 安装 AdGuardHome            [状态: ${AGH_STATUS}]"
@@ -494,10 +552,11 @@ while true; do
     echo -e " --- 维护选项 ---"
     echo -e " 7. 修复 53 端口占用"
     echo -e " 8. 单独卸载 Zdashboard"
-    echo -e " 9. 检查并更新组件 (NEW!)"
+    echo -e " 9. 检查并更新组件"
+    echo -e " 00. 切换/设置 CDN 加速 (推荐开启)"
     echo -e " 0. 退出"
     echo -e ""
-    read -p " 请输入选项 [0-9]: " choice
+    read -p " 请输入选项: " choice
 
     case $choice in
         1) install_agh ;;
@@ -509,9 +568,12 @@ while true; do
         7) fix_port53 ;;
         8) uninstall_zdashboard ;;
         9) check_updates_menu ;;
+        00) select_cdn; read -p "按回车继续..." ;;
         0) exit 0 ;;
         *) echo -e "${RED}无效选项。${PLAIN}" ;;
     esac
-    read -p "按回车键继续..."
+    if [[ "$choice" != "9" && "$choice" != "00" ]]; then
+        read -p "按回车键继续..."
+    fi
     clear
 done
