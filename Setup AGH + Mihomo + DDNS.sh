@@ -11,7 +11,6 @@ PLAIN='\033[0m'
 AGH_DIR="/opt/AdGuardHome"
 DDNS_GO_DIR="/opt/ddns-go"
 MIHOMO_DIR="/etc/mihomo"
-MIHOMO_RUN_DIR="$MIHOMO_DIR/run"
 MIHOMO_BIN="/usr/bin/mihomo"
 ZASHBOARD_DIR="$MIHOMO_DIR/ui/zashboard"
 RESOLVED_CONF="/etc/systemd/resolved.conf.d/adguardhome.conf"
@@ -222,10 +221,11 @@ install_mihomo() {
                 *) echo "跳过模型处理。" ;;
             esac
             if [ -n "$model_src_name" ]; then
-                mkdir -p "$MIHOMO_RUN_DIR"
+                
                 local model_url="${CDN_PREFIX}https://github.com/vernesong/mihomo/releases/download/LightGBM-Model/$model_src_name"
                 echo -e "${BLUE}正在下载 $model_src_name ...${PLAIN}"
-                wget -O "$MIHOMO_RUN_DIR/Model.bin" "$model_url"
+                wget -O "$MIHOMO_DIR/Model.bin" "$model_url"
+                
                 [[ $? -eq 0 ]] && model_downloaded=true || echo -e "${RED}模型下载失败。${PLAIN}"
             fi
         fi
@@ -305,9 +305,6 @@ EOF
     systemctl restart mihomo
     echo -e "${GREEN}Mihomo + Zdashboard 安装/更新完成！${PLAIN}"
     echo -e "Mihomo 面板地址: http://YOUR_IP:9090/ui/"
-    if [ "$model_downloaded" = true ]; then
-        echo -e "${YELLOW}提示: 模型已更新。在 config.yaml 中请配置: model: \"run/Model.bin\"${PLAIN}"
-    fi
 }
 
 # 3. 安装 ddns-go
