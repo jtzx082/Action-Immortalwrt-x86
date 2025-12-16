@@ -14,6 +14,8 @@ MIHOMO_DIR="/etc/mihomo"
 MIHOMO_BIN="/usr/bin/mihomo"
 ZASHBOARD_DIR="$MIHOMO_DIR/ui/zashboard"
 RESOLVED_CONF="/etc/systemd/resolved.conf.d/adguardhome.conf"
+HIJACK_SVC="/etc/systemd/system/agh-dns-hijack.service"
+SYSCTL_CONF="/etc/sysctl.d/99-ag-forward.conf"
 
 # 全局变量
 DEPENDENCIES_CHECKED=false
@@ -51,14 +53,15 @@ check_cpu_arch() {
 # 安装必要依赖
 install_dependencies() {
     if [ "$DEPENDENCIES_CHECKED" = true ]; then return; fi
-    echo -e "${BLUE}正在检查并安装必要依赖 (curl, wget, tar, unzip, jq)...${PLAIN}"
+    echo -e "${BLUE}正在检查并安装必要依赖 (curl, wget, tar, unzip, jq, iptables)...${PLAIN}"
+    local packages="curl wget tar unzip jq iptables"
     if [ -x "$(command -v apt-get)" ]; then
         apt-get update -y > /dev/null 2>&1
-        apt-get install -y curl wget tar unzip jq > /dev/null 2>&1
+        apt-get install -y $packages > /dev/null 2>&1
     elif [ -x "$(command -v yum)" ]; then
-        yum install -y curl wget tar unzip jq > /dev/null 2>&1
+        yum install -y $packages > /dev/null 2>&1
     else
-        echo -e "${YELLOW}警告: 未检测到 apt 或 yum，请手动确保安装了 curl, wget, tar, unzip, jq。${PLAIN}"
+        echo -e "${YELLOW}警告: 未检测到包管理器，请手动确保安装了: $packages${PLAIN}"
     fi
     DEPENDENCIES_CHECKED=true
 }
@@ -91,6 +94,21 @@ check_status() {
     else
         DDNS_STATUS="${RED}未安装${PLAIN}"
     fi
+
+    # Check DNS Hijack
+    if systemctl is-active --quiet agh-dns-hijack; then
+        HIJACK_STATUS="${GREEN}已开启${PLAIN}"
+    else
+        HIJACK_STATUS="${YELLOW}未开启${PLAIN}"
+    fi
+
+    # Check IP Forwarding
+    local fwd_v4=$(sysctl -n net.ipv4.ip_forward 2>/dev/null)
+    if [[ "$fwd_v4" == "1" ]]; then
+        FWD_STATUS="${GREEN}已开启${PLAIN}"
+    else
+        FWD_STATUS="${YELLOW}未开启${PLAIN}"
+    fi
 }
 
 # CDN 选择菜单
@@ -99,6 +117,7 @@ select_cdn() {
     echo -e "#                  设置 GitHub 加速镜像源                   #"
     echo -e "#############################################################"
     echo -e "说明: jsDelivr 不支持 Release 二进制文件加速，请使用以下镜像。"
+    echo -e "注意: 此设置仅对 Mihomo 和 ddns-go 生效，AdGuardHome 始终使用官方源。"
     echo -e ""
     echo -e " 1. 关闭加速 (直接连接 GitHub)"
     echo -e " 2. ghproxy.net (默认, 推荐)"
@@ -151,7 +170,6 @@ install_agh() {
         sleep 2
     fi
     cd /tmp
-    # AGH 使用官方静态源，不走 GitHub CDN
     wget -O AdGuardHome_linux_amd64.tar.gz https://static.adguard.com/adguardhome/release/AdGuardHome_linux_amd64.tar.gz
     if [ $? -ne 0 ]; then
         echo -e "${RED}下载失败，请检查网络连接。${PLAIN}"
@@ -221,11 +239,9 @@ install_mihomo() {
                 *) echo "跳过模型处理。" ;;
             esac
             if [ -n "$model_src_name" ]; then
-                
                 local model_url="${CDN_PREFIX}https://github.com/vernesong/mihomo/releases/download/LightGBM-Model/$model_src_name"
                 echo -e "${BLUE}正在下载 $model_src_name ...${PLAIN}"
                 wget -O "$MIHOMO_DIR/Model.bin" "$model_url"
-                
                 [[ $? -eq 0 ]] && model_downloaded=true || echo -e "${RED}模型下载失败。${PLAIN}"
             fi
         fi
@@ -305,6 +321,9 @@ EOF
     systemctl restart mihomo
     echo -e "${GREEN}Mihomo + Zdashboard 安装/更新完成！${PLAIN}"
     echo -e "Mihomo 面板地址: http://YOUR_IP:9090/ui/"
+    if [ "$model_downloaded" = true ]; then
+        echo -e "${YELLOW}提示: 模型已更新。在 config.yaml 中请配置: model: \"Model.bin\"${PLAIN}"
+    fi
 }
 
 # 3. 安装 ddns-go
@@ -382,9 +401,123 @@ revert_port53_fix() {
     fi
 }
 
+# 管理 DNS 劫持
+manage_dns_hijack() {
+    echo -e "#############################################################"
+    echo -e "#                  DNS 强制定向 (53端口劫持)                #"
+    echo -e "#############################################################"
+    echo -e "功能说明: 强制局域网所有设备使用本机的 AdGuardHome 进行 DNS 解析。"
+    echo -e "即便设备手动设置了 8.8.8.8，也会被透明转发到本机 53 端口。"
+    echo -e ""
+    
+    if systemctl is-active --quiet agh-dns-hijack; then
+        echo -e "当前状态: ${GREEN}已开启${PLAIN}"
+        echo -e " 1. 关闭劫持 (回滚/删除规则)"
+        echo -e " 0. 返回"
+        read -p "请选择: " h_choice
+        if [[ "$h_choice" == "1" ]]; then
+            systemctl stop agh-dns-hijack
+            systemctl disable agh-dns-hijack
+            rm "$HIJACK_SVC"
+            systemctl daemon-reload
+            echo -e "${GREEN}DNS 劫持已关闭，规则已移除。${PLAIN}"
+        fi
+    else
+        echo -e "当前状态: ${YELLOW}未开启${PLAIN}"
+        echo -e " 1. 开启劫持"
+        echo -e " 0. 返回"
+        read -p "请选择: " h_choice
+        if [[ "$h_choice" == "1" ]]; then
+            if ! command -v iptables &> /dev/null; then
+                echo -e "${RED}错误: 未找到 iptables，无法设置转发规则。${PLAIN}"
+                return
+            fi
+
+            echo -e "${BLUE}正在创建 Systemd 服务以持久化规则...${PLAIN}"
+            cat > "$HIJACK_SVC" <<EOF
+[Unit]
+Description=AdGuardHome DNS Hijack (NAT Redirect)
+After=network.target
+
+[Service]
+Type=oneshot
+ExecStart=/sbin/iptables -t nat -A PREROUTING -p udp --dport 53 -j REDIRECT --to-ports 53
+ExecStart=/sbin/iptables -t nat -A PREROUTING -p tcp --dport 53 -j REDIRECT --to-ports 53
+ExecStop=/sbin/iptables -t nat -D PREROUTING -p udp --dport 53 -j REDIRECT --to-ports 53
+ExecStop=/sbin/iptables -t nat -D PREROUTING -p tcp --dport 53 -j REDIRECT --to-ports 53
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
+EOF
+            systemctl daemon-reload
+            systemctl enable agh-dns-hijack
+            systemctl start agh-dns-hijack
+            
+            if systemctl is-active --quiet agh-dns-hijack; then
+                echo -e "${GREEN}DNS 劫持已开启！${PLAIN}"
+            else
+                echo -e "${RED}开启失败，请检查系统日志。${PLAIN}"
+            fi
+        fi
+    fi
+}
+
+# 管理 IP 转发 (新增功能)
+manage_ip_forward() {
+    echo -e "#############################################################"
+    echo -e "#                  IP 流量转发 (IP Forwarding)              #"
+    echo -e "#############################################################"
+    echo -e "功能说明: 允许本机在不同网络接口之间转发流量 (充当路由器/网关)。"
+    echo -e "如果不开启，连接到本机的设备将无法上网。"
+    echo -e ""
+    
+    local current_state=$(sysctl -n net.ipv4.ip_forward 2>/dev/null)
+    if [[ "$current_state" == "1" ]]; then
+        echo -e "当前状态: ${GREEN}已开启 (IPv4 & IPv6)${PLAIN}"
+        echo -e " 1. 关闭 IP 转发"
+        echo -e " 0. 返回"
+        read -p "请选择: " f_choice
+        if [[ "$f_choice" == "1" ]]; then
+            # 删除配置文件
+            rm -f "$SYSCTL_CONF"
+            # 立即关闭以生效
+            sysctl -w net.ipv4.ip_forward=0 >/dev/null
+            sysctl -w net.ipv6.conf.all.forwarding=0 >/dev/null
+            echo -e "${GREEN}IP 转发已关闭。${PLAIN}"
+        fi
+    else
+        echo -e "当前状态: ${YELLOW}未开启${PLAIN}"
+        echo -e " 1. 开启 IP 转发 (IPv4 & IPv6)"
+        echo -e " 0. 返回"
+        read -p "请选择: " f_choice
+        if [[ "$f_choice" == "1" ]]; then
+            echo -e "${BLUE}正在配置转发规则...${PLAIN}"
+            mkdir -p /etc/sysctl.d/
+            cat > "$SYSCTL_CONF" <<EOF
+net.ipv4.ip_forward=1
+net.ipv6.conf.all.forwarding=1
+EOF
+            # 应用配置
+            if sysctl -p "$SYSCTL_CONF" >/dev/null; then
+                echo -e "${GREEN}IP 转发已成功开启！${PLAIN}"
+            else
+                echo -e "${RED}应用配置失败，请检查权限。${PLAIN}"
+            fi
+        fi
+    fi
+}
+
 # 4. 卸载 AdGuardHome
 uninstall_agh() {
     echo -e "${YELLOW}正在卸载 AdGuardHome...${PLAIN}"
+    # 先关闭劫持
+    if systemctl is-active --quiet agh-dns-hijack; then
+        systemctl stop agh-dns-hijack
+        systemctl disable agh-dns-hijack
+        rm "$HIJACK_SVC" > /dev/null 2>&1
+    fi
+
     if [ -d "$AGH_DIR" ]; then
         cd $AGH_DIR
         ./AdGuardHome -s uninstall > /dev/null 2>&1
@@ -491,7 +624,7 @@ check_updates_menu() {
 
     clear
     echo -e "#############################################################"
-    echo -e "#                  组件版本检查与更新                       #"
+    echo -e "#                  组件版本检查与更新                        #"
     echo -e "#############################################################"
     echo -e ""
     echo -e " 1. AdGuardHome"
@@ -537,9 +670,9 @@ while true; do
     echo -e "#############################################################"
     echo -e ""
     echo -e " --- 安装选项 ---"
-    echo -e " 1. 安装 AdGuardHome            [状态: ${AGH_STATUS}]"
-    echo -e " 2. 安装 Mihomo + Zdashboard    [状态: ${MIHOMO_STATUS}]"
-    echo -e " 3. 安装 ddns-go                [状态: ${DDNS_STATUS}]"
+    echo -e " 1. 安装 AdGuardHome             [状态: ${AGH_STATUS}]"
+    echo -e " 2. 安装 Mihomo + Zdashboard     [状态: ${MIHOMO_STATUS}]"
+    echo -e " 3. 安装 ddns-go                 [状态: ${DDNS_STATUS}]"
     echo -e ""
     echo -e " --- 卸载选项 ---"
     echo -e " 4. 卸载 AdGuardHome"
@@ -548,8 +681,10 @@ while true; do
     echo -e ""
     echo -e " --- 维护选项 ---"
     echo -e " 7. 修复 53 端口占用"
-    echo -e " 8. 单独卸载 Zdashboard"
-    echo -e " 9. 检查并更新组件"
+    echo -e " 8. 设置/回滚 DNS 53端口劫持     [状态: ${HIJACK_STATUS}]"
+    echo -e " 9. 开启/关闭 IP转发(IPv4/v6)    [状态: ${FWD_STATUS}]"
+    echo -e " 10. 单独卸载 Zdashboard"
+    echo -e " 11. 检查并更新组件"
     echo -e " 00. 切换/设置 CDN 加速 (推荐开启)"
     echo -e " 0. 退出"
     echo -e ""
@@ -563,13 +698,15 @@ while true; do
         5) uninstall_mihomo ;;
         6) uninstall_ddns_go ;;
         7) fix_port53 ;;
-        8) uninstall_zdashboard ;;
-        9) check_updates_menu ;;
+        8) manage_dns_hijack ;;
+        9) manage_ip_forward ;;
+        10) uninstall_zdashboard ;;
+        11) check_updates_menu ;;
         00) select_cdn; read -p "按回车继续..." ;;
         0) exit 0 ;;
         *) echo -e "${RED}无效选项。${PLAIN}" ;;
     esac
-    if [[ "$choice" != "9" && "$choice" != "00" ]]; then
+    if [[ "$choice" != "11" && "$choice" != "00" ]]; then
         read -p "按回车键继续..."
     fi
     clear
