@@ -1,7 +1,7 @@
 #
 # https://github.com/P3TERX/Actions-OpenWrt
 #
-# File: .github/workflows/openwrt-bulder.yml
+# File: .github/workflows/openwrt-builder.yml
 # Description: Build OpenWrt using GitHub Actions
 #
 # Copyright (c) 2019-2024 P3TERX <https://p3terx.com>
@@ -11,6 +11,11 @@
 #
 
 name: OpenWrt Builder
+
+# 添加权限配置，确保 GITHUB_TOKEN 有权限删除运行记录和发布 Release
+permissions:
+  contents: write
+  actions: write
 
 on:
   repository_dispatch:
@@ -39,7 +44,6 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      # 兼容两种触发方式：手动触发（workflow_dispatch）和自动触发（repository_dispatch）
       REPO_URL: "https://github.com/${{ github.event.inputs.repository_owner || github.event.client_payload.repository_owner }}/${{ github.event.inputs.repository_name || github.event.client_payload.repository_name }}"
       REPO_BRANCH: ${{ github.event.inputs.repository_branch || github.event.client_payload.repository_branch }}
       FEEDS_CONF: feeds.conf.default
@@ -55,7 +59,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@main
+        uses: actions/checkout@v4
 
       - name: Initialization environment
         env:
@@ -109,7 +113,7 @@ jobs:
         if: |
           github.event_name == 'workflow_dispatch' &&
           github.event.inputs.enable_ssh == 'true'
-        uses: mxschmitt/action-tmate@v3    
+        uses: mxschmitt/action-tmate@v3
 
       - name: Download package
         id: package
@@ -129,20 +133,20 @@ jobs:
           echo "status=success" >> $GITHUB_OUTPUT
           grep '^CONFIG_TARGET.*DEVICE.*=y' .config | sed -r 's/.*DEVICE_(.*)=y/\1/' > DEVICE_NAME
           if [ -s DEVICE_NAME ]; then
-          echo "DEVICE_NAME<<EOF" >> $GITHUB_ENV
-          echo -n "_" >> $GITHUB_ENV
-          cat DEVICE_NAME >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
+            echo "DEVICE_NAME<<EOF" >> $GITHUB_ENV
+            echo -n "_" >> $GITHUB_ENV
+            cat DEVICE_NAME >> $GITHUB_ENV
+            echo "EOF" >> $GITHUB_ENV
           fi
           echo "FILE_DATE=$(date +"%Y%m%d%H%M")" >> $GITHUB_ENV
           echo "FILE_DATE1=$(date +"%Y年%m月%d日.%H时%M分")" >> $GITHUB_ENV
-          
+
       - name: Check space usage
         if: (!cancelled())
         run: df -hT
 
       - name: Upload bin directory
-        uses: actions/upload-artifact@main
+        uses: actions/upload-artifact@v4
         if: steps.compile.outputs.status == 'success' && env.UPLOAD_BIN_DIR == 'true'
         with:
           name: OpenWrt_bin${{ env.DEVICE_NAME }}${{ env.FILE_DATE }}
@@ -158,7 +162,7 @@ jobs:
           echo "status=success" >> $GITHUB_OUTPUT
 
       - name: Upload firmware directory
-        uses: actions/upload-artifact@main
+        uses: actions/upload-artifact@v4
         if: steps.organize.outputs.status == 'success' && !cancelled()
         with:
           name: ${{ env.FILE_DATE }}_${{ env.OPENWRT_NAME }}_${{ env.OPENWRT_NAME1 }}
@@ -174,22 +178,22 @@ jobs:
           echo "status=success" >> $GITHUB_OUTPUT
 
       - name: Upload firmware to release
-        uses: softprops/action-gh-release@master
+        uses: softprops/action-gh-release@v2
         if: steps.tag.outputs.status == 'success' && !cancelled()
         env:
-          GITHUB_TOKEN: ${{ secrets.ACTION }} #更新为自建repo权限Token
+          GITHUB_TOKEN: ${{ github.token }}
         with:
           tag_name: ${{ steps.tag.outputs.release_tag }}
           body_path: release.txt
           files: ${{ env.FIRMWARE }}/*
 
       - name: Delete workflow runs
-        uses: Mattraks/delete-workflow-runs@main
+        uses: Mattraks/delete-workflow-runs@v2
         with:
           retain_days: 0
           keep_minimum_runs: 2
           repository: ${{ github.repository }}
-          token: ${{ secrets.ACTION }}  #更新为自建repo权限Token
+          token: ${{ github.token }}
 
       - name: Remove old Releases
         uses: dev-drprasad/delete-older-releases@master
@@ -198,4 +202,4 @@ jobs:
           keep_latest: 3
           delete_tags: true
         env:
-          GITHUB_TOKEN: ${{ secrets.ACTION }} #更新为自建repo权限Token“secrets.<Github_Token>”
+          GITHUB_TOKEN: ${{ github.token }}
