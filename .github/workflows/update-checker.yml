@@ -56,7 +56,7 @@ jobs:
           {
             "repository_owner": "immortalwrt",
             "repository_name": "immortalwrt",
-            "repository_branch": "openwrt-24.10"
+            "repository_branch": "openwrt-25.12"
           }
     
     - name: Delete workflow runs
