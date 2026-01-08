@@ -181,19 +181,19 @@ jobs:
         uses: softprops/action-gh-release@v2
         if: steps.tag.outputs.status == 'success' && !cancelled()
         env:
-          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ steps.tag.outputs.release_tag }}
           body_path: release.txt
           files: ${{ env.FIRMWARE }}/*
 
+      # 修复了 token 缺失和版本问题
       - name: Delete workflow runs
-        uses: Mattraks/delete-workflow-runs@v2
+        uses: Mattraks/delete-workflow-runs@v2.0.6
         with:
           retain_days: 0
           keep_minimum_runs: 2
-          repository: ${{ github.repository }}
-          token: ${{ github.token }}
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Remove old Releases
         uses: dev-drprasad/delete-older-releases@master
@@ -202,4 +202,4 @@ jobs:
           keep_latest: 3
           delete_tags: true
         env:
-          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
