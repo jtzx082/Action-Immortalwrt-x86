@@ -14,7 +14,7 @@ name: Update Checker
 
 env:
   REPO_URL: https://github.com/immortalwrt/immortalwrt #检查源码地址
-  REPO_BRANCH: openwrt-25.12
+  REPO_BRANCH: openwrt-24.10
 
 on:
   workflow_dispatch:
@@ -56,7 +56,7 @@ jobs:
           {
             "repository_owner": "immortalwrt",
             "repository_name": "immortalwrt",
-            "repository_branch": "openwrt-25.12"
+            "repository_branch": "openwrt-24.10"
           }
     
     - name: Delete workflow runs
