@@ -1,137 +1,39 @@
-#!/bin/bash
-#
-# https://github.com/P3TERX/Actions-OpenWrt
-# File name: diy-part2.sh
-# Description: OpenWrt DIY script part 2 (After Update feeds)
-#
-# Copyright (c) 2019-2024 P3TERX <https://p3terx.com>
-#
-# This is free software, licensed under the MIT License.
-# See /LICENSE for more information.
-#
+#!/bin/sh
 
-# Modify default IP
-#sed -i 's/192.168.1.1/192.168.50.5/g' package/base-files/files/bin/config_generate
+# === 1. 网络配置 (默认 IP: 10.0.0.1) ===
+uci set network.lan.ipaddr='10.0.0.1'
+uci set network.lan.netmask='255.255.255.0'
 
-# Modify default theme
-#sed -i 's/luci-theme-bootstrap/luci-theme-argon/g' feeds/luci/collections/luci/Makefile
+# 绑定 LAN 口 (eth0 + eth2 + eth3)
+uci set network.@device[0].ports='eth0'
+uci add_list network.@device[0].ports='eth2'
+uci add_list network.@device[0].ports='eth3'
 
-# Modify hostname
-#sed -i 's/OpenWrt/P3TERX-Router/g' package/base-files/files/bin/config_generate
+# 自动配置 WAN 口 (eth1)
+# 检测 eth1 是否存在，存在则配置为 WAN
+[ -d "/sys/class/net/eth1" ] && {
+    uci delete network.wan 2>/dev/null
+    uci delete network.wan6 2>/dev/null
+    uci set network.wan=interface
+    uci set network.wan.device='eth1'
+    uci set network.wan.proto='dhcp'
+    uci add_list firewall.@zone[1].network='wan'
+}
 
-# 创建目标文件夹
-# mkdir -p ./files/etc/config
+# === 2. 系统设置 ===
+# 设置 root 密码为 password
+echo -e "password\npassword" | passwd root
+# 允许 Root 登录 SSH
+uci set dropbear.@dropbear[0].PasswordAuth='on'
+uci set dropbear.@dropbear[0].RootPasswordAuth='on'
 
-# # 写入 network 配置文件
-# cat <<'EOF' > ./files/etc/config/network
-# config interface 'loopback'
-# 	option device 'lo'
-# 	option proto 'static'
-# 	option ipaddr '127.0.0.1'
-# 	option netmask '255.0.0.0'
+# === 3. Nikki/Sing-box 兼容性处理 ===
+# 赋予规则库权限
+chmod 644 /usr/share/nikki/*.db
+# 建立 nikki -> sing-box 的软链接
+[ ! -f /usr/bin/nikki ] && ln -s /usr/bin/sing-box /usr/bin/nikki
 
-# config globals 'globals'
-# 	option packet_steering '1'
-
-# config device
-# 	option name 'br-lan'
-# 	option type 'bridge'
-# 	list ports 'eth0'
-#         option ipv6 '0'
-
-# config interface 'lan'
-# 	option device 'eth0'
-# 	option proto 'static'
-# 	option ipaddr '10.10.10.66'
-# 	option netmask '255.255.255.0'
-# 	option gateway '10.10.10.1'
-# 	list dns '10.10.10.1'
-# 	option delegate '0'
-
-# config interface 'vpn0'
-# 	option proto 'none'
-# 	option device 'tun0'
-# EOF
-
-# # 写入 dhcp 配置文件
-# cat <<'EOF' > ./files/etc/config/dhcp
-# config dnsmasq
-# 	option domainneeded '1'
-# 	option localise_queries '1'
-# 	option rebind_protection '1'
-# 	option rebind_localhost '1'
-# 	option local '/lan/'
-# 	option domain 'lan'
-# 	option expandhosts '1'
-# 	option min_cache_ttl '3600'
-# 	option use_stale_cache '3600'
-# 	option cachesize '8000'
-# 	option nonegcache '1'
-# 	option authoritative '1'
-# 	option readethers '1'
-# 	option leasefile '/tmp/dhcp.leases'
-# 	option resolvfile '/tmp/resolv.conf.d/resolv.conf.auto'
-# 	option localservice '1'
-# 	option ednspacket_max '1232'
-# 	option filter_aaaa '1'
-
-# config dhcp 'lan'
-# 	option interface 'lan'
-# 	option start '100'
-# 	option limit '150'
-# 	option leasetime '12h'
-# 	option dhcpv4 'server'
-# 	option ignore '1'
-
-# config dhcp 'wan'
-# 	option interface 'wan'
-# 	option ignore '1'
-
-# config odhcpd 'odhcpd'
-# 	option maindhcp '0'
-# 	option leasefile '/tmp/hosts/odhcpd'
-# 	option leasetrigger '/usr/sbin/odhcpd-update'
-# 	option loglevel '4'
-# EOF
-
-#  # 写入 firewall 配置文件
-# cat <<'EOF' > ./files/etc/config/firewall
-# config defaults                                                                                                                                                                                                                      
-#         option input 'ACCEPT'                                                                                                                                                                                                        
-#         option output 'ACCEPT'                                                                                                                                                                                                       
-#         option forward 'ACCEPT'
-# 	option flow_offloading '1'
-                                                                                                                                                                                                                                     
-# config zone                                                                                                                                                                                                                          
-#         option name 'lan'                                                                                                                                                                                                            
-#         list network 'lan'                                                                                                                                                                                                           
-#         option input 'ACCEPT'                                                                                                                                                                                                        
-#         option output 'ACCEPT'                                                                                                                                                                                                       
-#         option forward 'ACCEPT'                                                                                                                                                                                                      
-#         option masq '1'                                                                                                                                                                                                                                                                                                                                                                   
-                                                                                                                                                                                                                                     
-# config zone 'vpn'                                                                                                                                                                                                                    
-#         option name 'vpn'                                                                                                                                                                                                            
-#         option input 'ACCEPT'                                                                                                                                                                                                        
-#         option forward 'ACCEPT'                                                                                                                                                                                                      
-#         option output 'ACCEPT'                                                                                                                                                                                                       
-#         option masq '1'
-# 	option network 'vpn0'
-                                                            
-# config forwarding 'vpntowan'     
-#         option src 'vpn'                        
-#         option dest 'wan' 
-                             
-# config forwarding 'vpntolan'                    
-#         option src 'vpn'     
-#         option dest 'lan'      
-                              
-# config forwarding 'lantovpn' 
-#         option src 'lan'       
-#         option dest 'vpn'
-# EOF
-
-# #ImmortalWrt 软件仓库镜像
-# sed -e 's,https://downloads.immortalwrt.org,https://mirrors.sjtug.sjtu.edu.cn/immortalwrt,g' \
-#     -e 's,https://mirrors.vsean.net/openwrt,https://mirrors.sjtug.sjtu.edu.cn/immortalwrt,g' \
-#     -i.bak /etc/opkg/distfeeds.conf
+# === 4. 应用并保存更改 ===
+uci commit network
+uci commit dropbear
+exit 0
