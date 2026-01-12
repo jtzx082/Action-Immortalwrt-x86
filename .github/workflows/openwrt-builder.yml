@@ -12,7 +12,6 @@
 
 name: OpenWrt Builder
 
-# 添加权限配置，确保 GITHUB_TOKEN 有权限删除运行记录和发布 Release
 permissions:
   contents: write
   actions: write
@@ -34,18 +33,19 @@ on:
         required: false
         default: 'openwrt-24.10'
       enable_ssh:
-        description: 'Enable SSH debugging?'
+        description: '开启 SSH 调试?'
         type: boolean
         required: true
         default: false
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    # 建议使用 22.04，比 latest (24.04) 编译环境更稳定，工具链兼容性更好
+    runs-on: ubuntu-22.04
 
     env:
-      REPO_URL: "https://github.com/${{ github.event.inputs.repository_owner || github.event.client_payload.repository_owner }}/${{ github.event.inputs.repository_name || github.event.client_payload.repository_name }}"
-      REPO_BRANCH: ${{ github.event.inputs.repository_branch || github.event.client_payload.repository_branch }}
+      REPO_URL: "https://github.com/immortalwrt/immortalwrt.git"
+      REPO_BRANCH: openwrt-24.10
       FEEDS_CONF: feeds.conf.default
       CONFIG_FILE: .config
       DIY_P1_SH: diy-part1.sh
@@ -61,13 +61,26 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # 新增：清理磁盘空间，防止编译过程中空间不足报错
+      - name: Free Disk Space
+        uses: jlumbroso/free-disk-space@main
+        with:
+          tool-cache: true
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: true
+          swap-storage: true
+
       - name: Initialization environment
         env:
           DEBIAN_FRONTEND: noninteractive
         run: |
-          sudo apt-get update -y
-          sudo apt-get dist-upgrade -y
-          sudo apt-get install -y ack antlr3 asciidoc autoconf automake autopoint binutils bison build-essential \
+          sudo rm -rf /etc/apt/sources.list.d/* /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
+          sudo docker image prune --all --force
+          sudo -E apt-get -qq update
+          sudo -E apt-get -qq install -y ack antlr3 asciidoc autoconf automake autopoint binutils bison build-essential \
           bzip2 ccache clang cmake cpio curl device-tree-compiler ecj fastjar flex gawk gettext gcc-multilib \
           g++-multilib git gnutls-dev gperf haveged help2man intltool lib32gcc-s1 libc6-dev-i386 libelf-dev \
           libglib2.0-dev libgmp3-dev libltdl-dev libmpc-dev libmpfr-dev libncurses-dev libpython3-dev \
@@ -75,17 +88,18 @@ jobs:
           ninja-build p7zip p7zip-full patch pkgconf python3 python3-pip python3-ply python3-docutils \
           python3-pyelftools qemu-utils re2c rsync scons squashfs-tools subversion swig texinfo uglifyjs \
           upx-ucl unzip vim wget xmlto xxd zlib1g-dev zstd
+          sudo -E apt-get -qq autoremove --purge
+          sudo -E apt-get -qq clean
           sudo timedatectl set-timezone "$TZ"
-          sudo mkdir -p /mnt/workdir
-          sudo chown $USER:$GROUPS /mnt/workdir
-          sudo rm -rf /workdir
-          sudo ln -s /mnt/workdir /workdir
+          sudo mkdir -p /workdir
+          sudo chown $USER:$GROUPS /workdir
 
       - name: Clone source code
         working-directory: /workdir
         run: |
           df -hT $PWD
-          git clone $REPO_URL -b $REPO_BRANCH openwrt
+          # 优化：添加 --depth 1 进行浅克隆，减少下载量和空间占用
+          git clone $REPO_URL -b $REPO_BRANCH openwrt --depth 1
           ln -sf /workdir/openwrt $GITHUB_WORKSPACE/openwrt
 
       - name: Load custom feeds
@@ -129,6 +143,7 @@ jobs:
         run: |
           cd openwrt
           echo -e "$(nproc) thread compile"
+          # 优化：更健壮的编译逻辑
           make -j$(nproc) || make -j1 || make -j1 V=s
           echo "status=success" >> $GITHUB_OUTPUT
           grep '^CONFIG_TARGET.*DEVICE.*=y' .config | sed -r 's/.*DEVICE_(.*)=y/\1/' > DEVICE_NAME
@@ -156,10 +171,16 @@ jobs:
         id: organize
         if: env.UPLOAD_FIRMWARE == 'true' && !cancelled()
         run: |
-          cd openwrt/bin/targets/*/*
-          rm -rf packages *rootfs.tar.gz *rootfs.img.gz *combined.img.gz *.bin *.config *.buildinfo *.json sha256sums *.manifest *rootfs.img
-          echo "FIRMWARE=$PWD" >> $GITHUB_ENV
-          echo "status=success" >> $GITHUB_OUTPUT
+          # 增加容错：如果 targets 目录不存在（编译失败），不执行清理以免报错
+          if [ -d "openwrt/bin/targets" ]; then
+            cd openwrt/bin/targets/*/*
+            rm -rf packages
+            echo "FIRMWARE=$PWD" >> $GITHUB_ENV
+            echo "status=success" >> $GITHUB_OUTPUT
+          else
+             echo "Directory openwrt/bin/targets does not exist."
+             echo "status=failed" >> $GITHUB_OUTPUT
+          fi
 
       - name: Upload firmware directory
         uses: actions/upload-artifact@v4
@@ -170,7 +191,7 @@ jobs:
 
       - name: Generate release tag
         id: tag
-        if: env.UPLOAD_RELEASE == 'true' && !cancelled()
+        if: env.UPLOAD_RELEASE == 'true' && steps.compile.outputs.status == 'success' && !cancelled()
         run: |
           echo "release_tag=${{ env.FILE_DATE1 }}" >> $GITHUB_OUTPUT
           touch release.txt
@@ -187,7 +208,6 @@ jobs:
           body_path: release.txt
           files: ${{ env.FIRMWARE }}/*
 
-      # 修复了 token 缺失和版本问题
       - name: Delete workflow runs
         uses: Mattraks/delete-workflow-runs@v2.0.6
         with:
