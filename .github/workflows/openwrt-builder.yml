@@ -31,7 +31,7 @@ on:
       repository_branch:
         description: '分支'
         required: false
-        default: 'openwrt-24.10'
+        default: 'openwrt-25.12'
       enable_ssh:
         description: '开启 SSH 调试?'
         type: boolean
@@ -45,7 +45,7 @@ jobs:
 
     env:
       REPO_URL: "https://github.com/immortalwrt/immortalwrt.git"
-      REPO_BRANCH: openwrt-24.10
+      REPO_BRANCH: openwrt-25.12
       FEEDS_CONF: feeds.conf.default
       CONFIG_FILE: .config
       DIY_P1_SH: diy-part1.sh
@@ -116,6 +116,9 @@ jobs:
         run: cd openwrt && ./scripts/feeds install -a
 
       - name: Load custom configuration
+        env:
+          PPPOE_USERNAME: ${{ secrets.PPPOE_USERNAME }}
+          PPPOE_PASSWORD: ${{ secrets.PPPOE_PASSWORD }}
         run: |
           [ -e files ] && mv files openwrt/files
           [ -e $CONFIG_FILE ] && mv $CONFIG_FILE openwrt/.config
