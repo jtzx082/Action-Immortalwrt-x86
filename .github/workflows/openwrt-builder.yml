@@ -112,6 +112,14 @@ jobs:
       - name: Update feeds
         run: cd openwrt && ./scripts/feeds update -a
 
+      - name: Fix luci-app-store version for apk
+        run: |
+          cd openwrt
+          echo "Fixing luci-app-store version..."
+          find feeds -type f -name "Makefile" -path "*/luci-app-store/*" -exec sed -i 's/PKG_RELEASE:=.*/PKG_RELEASE:=1/' {} +
+          # 如果有必要，也可以重置 PKG_VERSION
+          # find feeds -type f -name "Makefile" -path "*/luci-app-store/*" -exec sed -i 's/PKG_VERSION:=.*/PKG_VERSION:=0.1.32/' {} +
+      
       - name: Install feeds
         run: cd openwrt && ./scripts/feeds install -a
 
