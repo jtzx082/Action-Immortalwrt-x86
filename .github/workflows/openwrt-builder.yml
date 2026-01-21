@@ -55,7 +55,7 @@ jobs:
       OPENWRT_NAME: immortalwrt
       OPENWRT_NAME1: x86_64
       TZ: Asia/Shanghai
-      # 【关键配置】补回您的 PPPoE 账号密码环境变量
+      # 您的 PPPoE 密码配置
       PPPOE_USERNAME: ${{ secrets.PPPOE_USERNAME }}
       PPPOE_PASSWORD: ${{ secrets.PPPOE_PASSWORD }}
 
@@ -63,7 +63,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # 【优化1】第一阶段清理：使用专用插件清理预装软件
       - name: Free Disk Space
         uses: jlumbroso/free-disk-space@main
         with:
@@ -73,13 +72,12 @@ jobs:
           haskell: true
           large-packages: true
           docker-images: true
-          swap-storage: true # 关键：删除 Swap 分区以释放约 4-7GB 空间
+          swap-storage: true
 
       - name: Initialization environment
         env:
           DEBIAN_FRONTEND: noninteractive
         run: |
-          # 【优化2】第二阶段清理：手动删除极占空间的大型文件
           sudo rm -rf /etc/apt/sources.list.d/* /usr/share/dotnet /usr/local/lib/android /opt/ghc /usr/share/swift /usr/lib/jvm
           sudo -E apt-get -qq update
           sudo -E apt-get -qq install $(curl -fsSL https://is.gd/depends_ubuntu_2204)
@@ -89,11 +87,12 @@ jobs:
           sudo mkdir -p /workdir
           sudo chown $USER:$GROUPS /workdir
 
+      # 【修正】使用浅克隆 (--depth 1) 既省空间又能保留 Git 版本信息
       - name: Clone source code
         working-directory: /workdir
         run: |
           df -hT $PWD
-          git clone -b ${{ inputs.repository_branch }} --single-branch ${{ env.REPO_URL }} openwrt
+          git clone -b ${{ inputs.repository_branch }} --single-branch --depth 1 ${{ env.REPO_URL }} openwrt
           ln -sf /workdir/openwrt $GITHUB_WORKSPACE/openwrt
 
       - name: Load custom feeds
@@ -109,8 +108,7 @@ jobs:
           ./scripts/feeds update -a
           ./scripts/feeds install -a
 
-      # 【优化3】修复 luci-app-store 在 OpenWrt 25.12 (apk) 中的版本号报错
-      # 强制将版本号中的连字符去除，并将 release 重置为 1
+      # 修复 luci-app-store 版本号问题
       - name: Fix luci-app-store version for apk
         run: |
           cd openwrt
@@ -126,29 +124,19 @@ jobs:
           cd openwrt
           $GITHUB_WORKSPACE/$DIY_P2_SH
 
-      # 【优化4】配置瘦身：强制关闭 SDK、ImageBuilder 和 BPF 工具链
-      # 无论 .config 怎么写，这里都会强制覆盖，防止磁盘爆满
+      # 强制优化配置以节省空间 (保留此步非常重要)
       - name: Optimize Config for Disk Space
         run: |
           cd openwrt
           echo "Optimizing .config settings..."
-          # 禁用 BPF Toolchain (极占空间且编译慢)
           sed -i 's/CONFIG_HAS_BPF_TOOLCHAIN=y/# CONFIG_HAS_BPF_TOOLCHAIN is not set/' .config
-          # 禁用 SDK 和 ImageBuilder
           sed -i 's/CONFIG_SDK=y/# CONFIG_SDK is not set/' .config
           sed -i 's/CONFIG_IB=y/# CONFIG_IB is not set/' .config
           sed -i 's/CONFIG_MAKE_TOOLCHAIN=y/# CONFIG_MAKE_TOOLCHAIN is not set/' .config
-          # 禁用内核调试信息
           sed -i 's/CONFIG_COLLECT_KERNEL_DEBUG=y/# CONFIG_COLLECT_KERNEL_DEBUG is not set/' .config
           sed -i 's/CONFIG_DEBUG=y/# CONFIG_DEBUG is not set/' .config
 
-      # 【优化5】删除 .git 目录（释放约 1GB+ 空间）
-      - name: Delete .git directory to save space
-        run: |
-          cd openwrt
-          rm -rf .git
-          find feeds -name ".git" -type d -exec rm -rf {} +
-          echo "Git directories deleted."
+      # 【注意】这里删除了 "Delete .git directory" 步骤，因为它导致了 base-files 报错
 
       - name: Download package
         id: package
@@ -164,7 +152,6 @@ jobs:
         run: |
           cd openwrt
           echo -e "$(nproc) thread compile"
-          # 使用更健壮的编译命令，失败后尝试单线程
           make -j$(nproc) || make -j1 || make -j1 V=s
           echo "status=success" >> $GITHUB_OUTPUT
           grep '^CONFIG_TARGET.*DEVICE.*=y' .config | sed -r 's/.*DEVICE_(.*)=y/\1/' > DEVICE_NAME
