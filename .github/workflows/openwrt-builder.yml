@@ -53,7 +53,7 @@ jobs:
       UPLOAD_BIN_DIR: false
       UPLOAD_FIRMWARE: true
       UPLOAD_RELEASE: true
-      OPENWRT_NAME: openwrt
+      OPENWRT_NAME: immortalwrt
       OPENWRT_NAME1: x86_64
       TZ: Asia/Shanghai
 
