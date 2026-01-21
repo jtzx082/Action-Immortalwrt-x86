@@ -53,7 +53,7 @@ jobs:
       UPLOAD_BIN_DIR: false
       UPLOAD_FIRMWARE: true
       UPLOAD_RELEASE: true
-      OPENWRT_NAME: immortalwrt
+      OPENWRT_NAME: openwrt
       OPENWRT_NAME1: x86_64
       TZ: Asia/Shanghai
 
@@ -61,7 +61,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # 新增：清理磁盘空间，防止编译过程中空间不足报错
+      # 【优化1】清理磁盘空间（使用插件 + 交换空间清理）
       - name: Free Disk Space
         uses: jlumbroso/free-disk-space@main
         with:
@@ -71,23 +71,16 @@ jobs:
           haskell: true
           large-packages: true
           docker-images: true
-          swap-storage: true
+          swap-storage: true # 关键：移除Swap分区以释放空间
 
       - name: Initialization environment
         env:
           DEBIAN_FRONTEND: noninteractive
         run: |
-          sudo rm -rf /etc/apt/sources.list.d/* /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
-          sudo docker image prune --all --force
+          # 【优化2】手动删除额外的大型文件，确保空间最大化
+          sudo rm -rf /etc/apt/sources.list.d/* /usr/share/dotnet /usr/local/lib/android /opt/ghc /usr/share/swift /usr/lib/jvm
           sudo -E apt-get -qq update
-          sudo -E apt-get -qq install -y ack antlr3 asciidoc autoconf automake autopoint binutils bison build-essential \
-          bzip2 ccache clang cmake cpio curl device-tree-compiler ecj fastjar flex gawk gettext gcc-multilib \
-          g++-multilib git gnutls-dev gperf haveged help2man intltool lib32gcc-s1 libc6-dev-i386 libelf-dev \
-          libglib2.0-dev libgmp3-dev libltdl-dev libmpc-dev libmpfr-dev libncurses-dev libpython3-dev \
-          libreadline-dev libssl-dev libtool libyaml-dev libz-dev lld llvm lrzsz mkisofs msmtp nano \
-          ninja-build p7zip p7zip-full patch pkgconf python3 python3-pip python3-ply python3-docutils \
-          python3-pyelftools qemu-utils re2c rsync scons squashfs-tools subversion swig texinfo uglifyjs \
-          upx-ucl unzip vim wget xmlto xxd zlib1g-dev zstd
+          sudo -E apt-get -qq install $(curl -fsSL https://is.gd/depends_ubuntu_2204)
           sudo -E apt-get -qq autoremove --purge
           sudo -E apt-get -qq clean
           sudo timedatectl set-timezone "$TZ"
@@ -98,8 +91,7 @@ jobs:
         working-directory: /workdir
         run: |
           df -hT $PWD
-          # 优化：添加 --depth 1 进行浅克隆，减少下载量和空间占用
-          git clone $REPO_URL -b $REPO_BRANCH openwrt --depth 1
+          git clone -b ${{ inputs.repository_branch }} --single-branch ${{ env.REPO_URL }} openwrt
           ln -sf /workdir/openwrt $GITHUB_WORKSPACE/openwrt
 
       - name: Load custom feeds
@@ -110,30 +102,20 @@ jobs:
           $GITHUB_WORKSPACE/$DIY_P1_SH
 
       - name: Update feeds
-        run: cd openwrt && ./scripts/feeds update -a
+        run: |
+          cd openwrt
+          ./scripts/feeds update -a
+          ./scripts/feeds install -a
 
+      # 【优化3】修复 luci-app-store 在 OpenWrt 25.12 (apk) 中的版本号报错
       - name: Fix luci-app-store version for apk
         run: |
           cd openwrt
           echo "Fixing luci-app-store version..."
-          # 使用 find 命令查找 Makefile，确保路径正确
-          # 1. 强制将 VERSION 从 0.1.32-1 改为 0.1.32 (去掉非法的连字符)
           find feeds -type f -name "Makefile" -path "*/luci-app-store/*" -exec sed -i 's/PKG_VERSION:=.*/PKG_VERSION:=0.1.32/' {} +
-        
-          # 2. 强制将 RELEASE 重置为 1
           find feeds -type f -name "Makefile" -path "*/luci-app-store/*" -exec sed -i 's/PKG_RELEASE:=.*/PKG_RELEASE:=1/' {} +
-        
-          echo "Fix applied. Checking content:"
-          # 打印修改后的内容以供检查 (可选)
-          find feeds -type f -name "Makefile" -path "*/luci-app-store/*" -exec grep -H "PKG_VERSION" {} +
-          
-      - name: Install feeds
-        run: cd openwrt && ./scripts/feeds install -a
 
       - name: Load custom configuration
-        env:
-          PPPOE_USERNAME: ${{ secrets.PPPOE_USERNAME }}
-          PPPOE_PASSWORD: ${{ secrets.PPPOE_PASSWORD }}
         run: |
           [ -e files ] && mv files openwrt/files
           [ -e $CONFIG_FILE ] && mv $CONFIG_FILE openwrt/.config
@@ -141,11 +123,27 @@ jobs:
           cd openwrt
           $GITHUB_WORKSPACE/$DIY_P2_SH
 
-      - name: Start SSH Session (Debug)
-        if: |
-          github.event_name == 'workflow_dispatch' &&
-          github.event.inputs.enable_ssh == 'true'
-        uses: mxschmitt/action-tmate@v3
+      # 【优化4】在编译前强制优化 .config 设置，防止爆磁盘
+      - name: Optimize Config for Disk Space
+        run: |
+          cd openwrt
+          echo "Optimizing .config settings..."
+          # 禁用 BPF Toolchain (极占空间)
+          sed -i 's/CONFIG_HAS_BPF_TOOLCHAIN=y/# CONFIG_HAS_BPF_TOOLCHAIN is not set/' .config
+          # 禁用 SDK 和 ImageBuilder (防止意外开启)
+          sed -i 's/CONFIG_SDK=y/# CONFIG_SDK is not set/' .config
+          sed -i 's/CONFIG_IB=y/# CONFIG_IB is not set/' .config
+          # 禁用调试信息
+          sed -i 's/CONFIG_COLLECT_KERNEL_DEBUG=y/# CONFIG_COLLECT_KERNEL_DEBUG is not set/' .config
+          sed -i 's/CONFIG_DEBUG=y/# CONFIG_DEBUG is not set/' .config
+
+      # 【优化5】删除 .git 目录（绝招：释放约 1GB+ 空间）
+      - name: Delete .git directory to save space
+        run: |
+          cd openwrt
+          rm -rf .git
+          find feeds -name ".git" -type d -exec rm -rf {} +
+          echo "Git directories deleted."
 
       - name: Download package
         id: package
@@ -165,14 +163,9 @@ jobs:
           make -j$(nproc) || make -j1 || make -j1 V=s
           echo "status=success" >> $GITHUB_OUTPUT
           grep '^CONFIG_TARGET.*DEVICE.*=y' .config | sed -r 's/.*DEVICE_(.*)=y/\1/' > DEVICE_NAME
-          if [ -s DEVICE_NAME ]; then
-            echo "DEVICE_NAME<<EOF" >> $GITHUB_ENV
-            echo -n "_" >> $GITHUB_ENV
-            cat DEVICE_NAME >> $GITHUB_ENV
-            echo "EOF" >> $GITHUB_ENV
-          fi
-          echo "FILE_DATE=$(date +"%Y%m%d%H%M")" >> $GITHUB_ENV
-          echo "FILE_DATE1=$(date +"%Y年%m月%d日.%H时%M分")" >> $GITHUB_ENV
+          [ -s DEVICE_NAME ] && echo "DEVICE_NAME=_$(cat DEVICE_NAME)" >> $GITHUB_ENV
+          echo "FILE_DATE=_$(date +"%Y%m%d%H%M")" >> $GITHUB_ENV
+          echo "FILE_DATE1=$(date +"%Y.%m.%d")" >> $GITHUB_ENV
 
       - name: Check space usage
         if: (!cancelled())
@@ -189,16 +182,10 @@ jobs:
         id: organize
         if: env.UPLOAD_FIRMWARE == 'true' && !cancelled()
         run: |
-          # 增加容错：如果 targets 目录不存在（编译失败），不执行清理以免报错
-          if [ -d "openwrt/bin/targets" ]; then
-            cd openwrt/bin/targets/*/*
-            rm -rf packages
-            echo "FIRMWARE=$PWD" >> $GITHUB_ENV
-            echo "status=success" >> $GITHUB_OUTPUT
-          else
-             echo "Directory openwrt/bin/targets does not exist."
-             echo "status=failed" >> $GITHUB_OUTPUT
-          fi
+          cd openwrt/bin/targets/*/*
+          rm -rf packages
+          echo "FIRMWARE=$PWD" >> $GITHUB_ENV
+          echo "status=success" >> $GITHUB_OUTPUT
 
       - name: Upload firmware directory
         uses: actions/upload-artifact@v4
